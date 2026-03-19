@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Novo Curso — Tutor AIOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+        <nav class="sidebar">
+        <a href="/" class="logo">Tutor AIOS</a>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/classroom">Sala de Aula</a></li>
+            <li><a href="/upload" class="active">Novo Curso</a></li>
+            <li><a href="/progress">Progresso</a></li>
+            <li><a href="/memory">Memória</a></li>
+            <li><a href="/agents">Agentes</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <h1>Novo Curso</h1>
+        <div class="card" style="max-width:600px;">
+            <label style="display:block;margin-bottom:6px;color:#9ca3af;font-size:13px;">Nome do Curso</label>
+            <input type="text" id="course" placeholder="ex: fundamentos ia">
+            <label style="display:block;margin-bottom:6px;color:#9ca3af;font-size:13px;">Arquivo PDF</label>
+            <input type="file" id="pdf" accept=".pdf" style="margin-bottom:20px;">
+            <button onclick="upload()" id="btn">Enviar e Processar</button>
+            <div id="status" style="margin-top:20px;font-size:14px;color:#9ca3af;display:none;">
+                Processando PDF... isso pode levar alguns segundos.
+            </div>
+            <div id="result" style="margin-top:20px;display:none;">
+                <p style="color:#4ade80;font-weight:600;">PDF processado com sucesso.</p>
+                <p id="info" style="color:#9ca3af;font-size:13px;"></p>
+                <div id="curriculum" style="background:#0f1117;border:1px solid #2a2d3a;border-radius:8px;padding:16px;margin-top:12px;font-size:13px;color:#9ca3af;white-space:pre-wrap;max-height:300px;overflow-y:auto;"></div>
+                <a href="/classroom" style="display:inline-block;margin-top:16px;background:#7c6af7;color:#fff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">Iniciar Aula</a>
+            </div>
+            <div id="error" style="margin-top:20px;color:#f87171;font-size:13px;display:none;"></div>
+        </div>
+    </main>
+    <script>
+        async function upload() {
+            const course = document.getElementById("course").value.trim();
+            const fileInput = document.getElementById("pdf");
+            if (!course) { alert("Informe o nome do curso."); return; }
+            if (!fileInput.files.length) { alert("Selecione um arquivo PDF."); return; }
+
+            document.getElementById("btn").disabled = true;
+            document.getElementById("status").style.display = "block";
+            document.getElementById("result").style.display = "none";
+            document.getElementById("error").style.display = "none";
+
+            const form = new FormData();
+            form.append("file", fileInput.files[0]);
+            form.append("course_id", course);
+
+            const res = await fetch("/api/upload", { method: "POST", body: form });
+            const data = await res.json();
+
+            document.getElementById("status").style.display = "none";
+            document.getElementById("btn").disabled = false;
+
+            if (data.success) {
+                document.getElementById("info").innerText =
+                    "Arquivo: " + data.filename + " | Chunks: " + data.chunks;
+                const curr = typeof data.curriculum === "string"
+                    ? data.curriculum
+                    : JSON.stringify(data.curriculum, null, 2);
+                document.getElementById("curriculum").innerText = curr;
+                document.getElementById("result").style.display = "block";
+            } else {
+                document.getElementById("error").innerText = "Erro: " + data.error;
+                document.getElementById("error").style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

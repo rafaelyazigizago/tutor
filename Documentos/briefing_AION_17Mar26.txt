@@ -1,0 +1,208 @@
+TUTOR AIOS — BRIEFING COMPLETO PARA HANDOFF
+Data: 17/03/2026
+Para: AION UI (assistente sucessor)
+
+Você é meu assistente de desenvolvimento sênior. Leia tudo com atenção antes de responder. Só confirme que entendeu e aguarde minha instrução.
+
+════════════════════════════════════════════════════════════
+1. O QUE É O PROJETO
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA que ingere PDFs, gera currículos
+automaticamente e conduz aulas conversacionais em linguagem natural.
+Dashboard web funcional com chat em tempo real.
+
+Visão de longo prazo: SaaS B2B para criadores de cursos com persona
+personalizada (voz, estilo, avatar do criador). Dados dos alunos ficam
+sob controle do criador — não alimentam modelos de terceiros.
+
+════════════════════════════════════════════════════════════
+2. ESTADO ATUAL
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83)
+Falha restante: Ollama offline — ignorada propositalmente.
+
+Backup mais recente: /home/ryz/AI/ProjTutor_Vrs6_15Mar26_Dashboard_PT.zip
+
+FASES:
+✅ Fase 0 — Estabilização do core
+✅ Fase 1 — Knowledge Layer (PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch)
+✅ Fase 2 — Tutor Core (CurriculumEngine, LessonGenerator, ProgressTracker, TutorSession, ConversationEngine)
+✅ Fase 3 — Dashboard Web (FastAPI + WebSockets + 6 telas)
+⏳ Fase 3.5 — Melhorias do Dashboard (em andamento)
+⏳ Fase 4 — Voz e Visão
+⏳ Fase 5 — Desktop App
+
+════════════════════════════════════════════════════════════
+3. AMBIENTE
+════════════════════════════════════════════════════════════
+
+OS: Linux Zorin 18 (Ubuntu 24.04 LTS)
+Hardware: Lenovo IdeaPad Gaming 3 — i7-10750H, 8GB RAM, GTX 1650 4GB
+Python: 3.12 (venv recriado em 17/03/2026)
+Projeto: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+
+Comandos para iniciar:
+  cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+  uvicorn apps.dashboard.main:app --reload --port 8000
+
+LLMs em uso:
+- Groq (Llama 3.3 70B) → conversa, ingestão, currículo
+- Anthropic (Claude Haiku) → raciocínio profundo
+- Fallback automático implementado no LLMClient
+- Gemini e OpenAI: providers criados mas desativados
+- ALERTA: chave Gemini ficou exposta em output. Gerar nova antes de reativar.
+
+════════════════════════════════════════════════════════════
+4. ESTRUTURA DO PROJETO
+════════════════════════════════════════════════════════════
+
+ProjTutor_Vrs1_11Mar26_1016/
+├── aios/
+│   ├── orchestrator/     engine, task_queue, agent_registry, router, etc.
+│   ├── agents/           TutorAgent, ResearchAgent, BuilderAgent, SystemAgent...
+│   ├── tools/            FileSystemTool, VectorMemoryTool, SystemTool...
+│   ├── memory/           VectorMemory (ChromaDB), ExecutionMemory
+│   ├── llm/              LLMClient + providers (groq, anthropic, gemini, openai, ollama)
+│   ├── knowledge/        PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch
+│   └── tutor_core/       CurriculumEngine, LessonGenerator, ProgressTracker,
+│                         TutorSession, ConversationEngine
+├── apps/
+│   ├── dashboard/
+│   │   ├── main.py       FastAPI + WebSockets + upload endpoint
+│   │   ├── templates/    inicio, sala_de_aula, novo_curso, progresso, memoria, agentes
+│   │   └── static/css/   style.css (tema dark)
+│   └── cli/
+├── sources/pdfs/         PDFs ingeridos ficam aqui
+├── data/progress/        JSONs de progresso por curso
+├── memory/MEMORY.md      Histórico de sessões do tutor
+├── validate_tutor.py
+├── .env                  protegido pelo .gitignore
+└── pyproject.toml
+
+════════════════════════════════════════════════════════════
+5. DASHBOARD — TELAS EXISTENTES
+════════════════════════════════════════════════════════════
+
+/ → Início com 5 cards de navegação
+/classroom → Sala de Aula com chat em tempo real via WebSocket + ConversationEngine
+  - Primeiro turno inicia tópico com start_topic()
+  - Turnos seguintes usam respond() com memória dos últimos 10 turnos
+  - Verificação de entendimento a cada 3 turnos
+  - Botão Simplificar → engine.simplify()
+  - Aceita ?topic= na URL para iniciar aula automaticamente
+/upload → Novo Curso
+  - Upload de PDF + nome do curso
+  - Normaliza course_id: "Teste IA V2" → "teste_ia_v2"
+  - Roda TutorSession.ingest_pdf() + generate_curriculum()
+  - Persiste em data/progress/{course_id}.json
+  - Botão "Iniciar Aula" redireciona para /classroom
+/progress → Progresso
+  - Cards expansíveis por curso
+  - Módulos do currículo listados com botão "Estudar"
+  - Botão Estudar redireciona para /classroom?topic=...
+/memory → Memória
+  - Sessões do MEMORY.md exibidas como cards
+  - Busca por tópico
+  - Link "Ver arquivo bruto"
+  - BUG PENDENTE: parser está capturando o cabeçalho do arquivo como sessão
+/agents → Agentes
+  - Lista TutorAgent, CurriculumAgent, ResearchAgent com status
+
+════════════════════════════════════════════════════════════
+6. TAREFAS PENDENTES (em ordem de prioridade)
+════════════════════════════════════════════════════════════
+
+TAREFA IMEDIATA — Corrigir parser da tela de Memória
+─────────────────────────────────────────────────────
+Bug: o cabeçalho do MEMORY.md está sendo parseado como sessão.
+O arquivo tem este formato:
+
+  # Tutor AIOS — Student Memory
+  Student: Rafael
+  ---
+  ## Sessions
+
+  ### Sessao 2026-03-15 11:09
+  Topico: recursao em Python
+  Turnos: 12
+  Aluno: Rafael
+  ---
+
+O parser atual divide por "### Sessao" e retorna todos os blocos,
+incluindo o cabeçalho antes do primeiro "### Sessao".
+Correção: filtrar blocos que não tenham "Topico:" — esses são cabeçalho.
+O código está em apps/dashboard/templates/memory.html na função parseSessions().
+
+TAREFA 2 — Indicador "digitando..." no chat
+─────────────────────────────────────────────────────
+Enquanto o tutor processa a resposta, mostrar uma bolha animada
+com "..." na área de mensagens para o aluno saber que está pensando.
+Implementar em apps/dashboard/templates/classroom.html.
+
+TAREFA 3 — Conectar nome do aluno ao perfil
+─────────────────────────────────────────────────────
+O nome "Rafael" está hardcoded no WebSocket do main.py.
+Criar input de nome na tela inicial ou no Classroom para
+o aluno informar seu nome antes de começar a aula.
+
+════════════════════════════════════════════════════════════
+7. DECISÕES DE ARQUITETURA v2.0 (não implementar agora)
+════════════════════════════════════════════════════════════
+
+- Memória híbrida: MEMORY.md (sessão) + ChromaDB (semântica)
+- CAG: cache semântico Redis antes do pipeline RAG
+- Separação Inner Loop / Outer Loop no OrchestratorEngine
+- Prompt Injection Defense no ConversationEngine
+- Intent Checks determinísticos antes de ferramentas sensíveis
+- Controle de profundidade de raciocínio por tipo de tarefa
+- PersonaEngine via arquivo .md por criador de curso
+- Modo Especialista Selecionável (perfis de tutor por domínio)
+- Oracle Cloud Free Tier como servidor backend
+- Supabase + Clerk + Stripe para versão SaaS paga
+- Investigar BMAD antes de replanejar arquitetura v2.0
+- Ingestão de vídeos (Whisper), GitHub repos, Google Drive
+
+════════════════════════════════════════════════════════════
+8. REGRAS INEGOCIÁVEIS DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos ou snippets
+2. Passo a passo detalhado com todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória após cada etapa
+5. Explicar didaticamente o que cada parte faz
+6. Documentar decisões importantes
+7. Nunca mudar arquitetura sem justificativa e aprovação
+8. execute() sempre síncrono — NUNCA async
+9. DynamicLoader como único mecanismo de registro de agentes
+10. Documento de Visão Opus é a base definitiva do produto
+11. NUNCA usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+12. Desenvolvimento exclusivo neste assistente — outros podem sugerir
+    ideias mas não tocam no código
+
+════════════════════════════════════════════════════════════
+9. STACK TECNOLÓGICA
+════════════════════════════════════════════════════════════
+
+LLMs: Groq (Llama 3.3 70B) + Anthropic (Claude Haiku)
+Vector Store: ChromaDB (local, persistente)
+Embeddings: sentence-transformers (all-MiniLM-L6-v2)
+Backend: FastAPI + Uvicorn + WebSockets
+Frontend: HTML + CSS + JS vanilla (tema dark)
+Persistência: JSON (progresso) + ChromaDB (vetores) + MEMORY.md (sessões)
+
+════════════════════════════════════════════════════════════
+10. PRIMEIRA TAREFA
+════════════════════════════════════════════════════════════
+
+Corrija o bug do parser na tela de Memória.
+
+O arquivo está em: apps/dashboard/templates/memory.html
+A função a corrigir é parseSessions() no bloco <script>.
+
+A correção é filtrar blocos sem "Topico:" para excluir o cabeçalho.
+Entregue o arquivo completo memory.html corrigido e o comando para aplicar.
+
+Aguarde confirmação antes de prosseguir para a próxima tarefa.

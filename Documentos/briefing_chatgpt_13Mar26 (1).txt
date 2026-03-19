@@ -1,0 +1,224 @@
+════════════════════════════════════════════════════════════
+  TUTOR AIOS — BRIEFING COMPLETO PARA CONTINUIDADE
+  Data: 13/03/2026
+════════════════════════════════════════════════════════════
+
+Você é meu assistente de desenvolvimento sênior. Vou te apresentar um projeto
+completo que estou desenvolvendo. Leia tudo com atenção antes de responder
+qualquer coisa. Só confirme que entendeu e aguarde minha instrução.
+
+════════════════════════════════════════════════════════════
+1. O QUE É O PROJETO
+════════════════════════════════════════════════════════════
+
+O Tutor AIOS é um professor pessoal de IA que:
+- Ingere fontes de conhecimento (PDFs, futuramente vídeos e repositórios)
+- Gera currículos automaticamente a partir do conteúdo ingerido
+- Conduz aulas conversacionais em linguagem natural com o aluno
+- Registra progresso por curso
+- Futuramente: voz, visão de tela, persona com rosto e voz do criador do curso
+
+É um projeto pessoal com visão de produto SaaS B2B para criadores de cursos.
+
+════════════════════════════════════════════════════════════
+2. ESTADO ATUAL DO PROJETO
+════════════════════════════════════════════════════════════
+
+O projeto foi desenvolvido no Windows 11 e está em backup no Google Drive.
+Arquivo: ProjTutor_Vrs1_11Mar26_1016.zip (628 MB)
+
+Score de validação no momento do backup: 98% (82/83 verificações passando).
+A única falha é cosmética — pkg_resources obsoleto no script de validação,
+não afeta o funcionamento do sistema.
+
+FASES CONCLUÍDAS:
+- Fase 0 — Estabilização: 100% completa
+- Fase 1 — Knowledge Layer: completa (PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch)
+- Fase 2 — Tutor Core: completa (CurriculumEngine, LessonGenerator com RAG,
+  ProgressTracker, TutorSession, ConversationEngine)
+
+FASES PENDENTES:
+- Fase 3 — Dashboard Web (FastAPI + WebSockets + frontend)
+- Fase 4 — Voz e Visão
+- Fase 5 — Desktop App
+
+PIPELINE VALIDADO E FUNCIONANDO:
+PDF ingerido → 173 chunks no ChromaDB → currículo gerado com 4 módulos →
+aula completa via RAG → progresso registrado → conversa em linguagem natural
+com simplificação por analogia e verificação de entendimento.
+
+════════════════════════════════════════════════════════════
+3. STACK TECNOLÓGICA ATUAL
+════════════════════════════════════════════════════════════
+
+- Python 3.12
+- Ollama + qwen2.5:7b (LLM local — será substituído por APIs online)
+- ChromaDB (vector store persistente)
+- sentence-transformers (embeddings — all-MiniLM-L6-v2)
+- pypdf (ingestão de PDFs)
+- venv para isolamento de ambiente
+
+════════════════════════════════════════════════════════════
+4. ESTRUTURA DO PROJETO
+════════════════════════════════════════════════════════════
+
+Tutor/
+├── aios/
+│   ├── orchestrator/     engine.py, task_queue.py, agent_registry.py, router.py,
+│   │                     task.py, task_planner.py, llm_planner.py, agent_loader.py,
+│   │                     planner_context.py, task_types.py
+│   ├── agents/           base_agent.py, tool_agent.py, llm_agent.py, tutor_agent.py,
+│   │                     research_agent.py, builder_agent.py, system_agent.py,
+│   │                     agent_generator.py, planner.py, validation_agent.py,
+│   │                     generated_agent.py
+│   ├── tools/            tool.py, global_registry.py, llm_tool.py,
+│   │                     vector_memory_tool.py, planner_tool.py, filesystem_tool.py,
+│   │                     system_tool.py
+│   ├── memory/           vector_memory.py, execution_memory.py
+│   ├── llm/              llm_client.py, providers/ollama_provider.py,
+│   │                     providers/base_provider.py
+│   ├── knowledge/
+│   │   ├── ingestors/    pdf_ingestor.py (com validação de path)
+│   │   ├── chunking/     chunk_engine.py
+│   │   ├── embeddings/   embedding_engine.py
+│   │   ├── knowledge_search.py
+│   │   └── tutor_knowledge_responder.py
+│   ├── tutor_core/
+│   │   ├── curriculum_engine.py
+│   │   ├── lesson_generator.py (com RAG)
+│   │   ├── progress_tracker.py
+│   │   ├── tutor_session.py
+│   │   └── conversation_engine.py
+│   └── embeddings/
+│       └── embedding_singleton.py
+├── apps/cli/main.py
+├── sources/pdfs/         (PDFs do aluno ficam aqui)
+├── data/
+│   ├── chroma/           (ChromaDB persistente)
+│   └── progress/         (JSONs de progresso por curso)
+├── logs/sessoes/         (relatórios de sessão)
+├── validate_tutor.py
+├── run_tutor.py
+├── test_pipeline.py
+├── test_conversation.py
+├── .env
+└── pyproject.toml
+
+════════════════════════════════════════════════════════════
+5. REGRAS INEGOCIÁVEIS DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Sempre entregar arquivos COMPLETOS — nunca trechos ou snippets
+2. Passo a passo detalhado com todos os comandos necessários
+3. Comandos prontos para colar no terminal bash do Linux
+4. Validar após cada etapa — nunca avançar sem confirmar que funcionou
+5. Explicar didaticamente o que cada parte faz
+6. Documentar decisões importantes
+7. Nunca mudar arquitetura sem justificativa clara e aprovação
+8. execute() sempre síncrono — NUNCA async
+9. DynamicLoader como único mecanismo de registro de agentes
+10. Nunca usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise — o projeto
+    tem sua própria arquitetura de orquestração
+
+════════════════════════════════════════════════════════════
+6. MUDANÇA CRÍTICA: MIGRAÇÃO WINDOWS → LINUX
+════════════════════════════════════════════════════════════
+
+O desenvolvimento migra definitivamente do Windows 11 para o Linux Zorin 18.
+
+HARDWARE DO NOVO AMBIENTE:
+- Notebook: Lenovo IdeaPad Gaming 3 15IMH05
+- CPU: Intel Core i7-10750H (6 núcleos / 12 threads, até 5 GHz)
+- RAM: 8 GB (gargalo — só ~3-4 GB disponíveis com sistema rodando)
+- GPU: NVIDIA GeForce GTX 1650 (4 GB VRAM) — driver 580.126.09 instalado
+- Armazenamento: NVMe 476 GB (458 GB livres)
+- OS: Zorin OS 18 (Ubuntu 24.04 LTS base), kernel 6.17.0
+- Python: ainda não verificado no novo ambiente
+
+O QUE PRECISAMOS FAZER ANTES DE RETOMAR O CÓDIGO:
+1. Verificar o ambiente: Python, pip, git, venv
+2. Instalar dependências do sistema que forem necessárias
+3. Baixar o backup do Google Drive
+4. Restaurar e adaptar o projeto para Linux
+   (caminhos, separadores, scripts shell em vez de PowerShell)
+5. Criar as chaves de API (detalhadas abaixo)
+6. Adaptar o código para usar as novas APIs
+
+════════════════════════════════════════════════════════════
+7. MUDANÇA CRÍTICA: LLMs ONLINE EM VEZ DE LOCAL
+════════════════════════════════════════════════════════════
+
+Por causa da limitação de 8 GB de RAM, abandonamos o qwen2.5:7b local
+como motor principal. Adotamos estratégia multi-LLM com APIs online.
+
+ALOCAÇÃO DECIDIDA:
+
+Gemini Flash 2.0 (Google)
+→ Etapa: ingestão e processamento de conhecimento
+→ Justificativa: 1M tokens de contexto, ideal para documentos longos, gratuito
+→ Chave: criar em https://aistudio.google.com
+
+Groq + Llama 3.1 8B
+→ Etapa: conversa em tempo real com o aluno
+→ Justificativa: latência mínima (~200ms), essencial para voz fluida
+→ Chave: criar em https://console.groq.com
+
+GPT-4o mini (OpenAI)
+→ Etapa: geração de currículo e estruturação de conteúdo
+→ Justificativa: qualidade consistente, barato, bom para background tasks
+→ Chave: criar em https://platform.openai.com
+
+Claude (Anthropic)
+→ Etapa: raciocínio profundo (avaliar qualidade pedagógica, exercícios complexos)
+→ Chave: criar em https://console.anthropic.com
+
+O LLMClient atual (llm_client.py) suporta apenas Ollama.
+Precisará ser refatorado para suportar múltiplos providers com seleção por tarefa.
+
+════════════════════════════════════════════════════════════
+8. DECISÕES REGISTRADAS PARA v2.0
+════════════════════════════════════════════════════════════
+
+(Estas não precisam ser implementadas agora — são para não esquecer)
+
+- Skills como PersonaEngine: cada persona de professor é um arquivo .md com
+  estilo de fala e abordagem pedagógica. Mais leve que PersonaEngine completo.
+
+- ResearchAgent com protocolo de pesquisa profunda: quando aluno pedir
+  pesquisa, seguir protocolo Mapeamento Inicial → Análise Profunda com
+  fontes recentes e dados reais.
+
+- Oracle Cloud Free Tier como servidor backend (4 OCPUs ARM, 24 GB RAM,
+  sempre gratuito). Notebook vira interface, servidor roda os modelos.
+
+- LessonGenerator: adicionar modo "Mind Map" (ideias principais e relações).
+
+- LessonGenerator: adicionar modo "Glossário" (termos fundamentais com
+  definições para memorização).
+
+- LessonGenerator: modo "Structured by Chapter" — aulas ancoradas nos
+  capítulos do documento original, não só no currículo gerado pela IA.
+
+- Investigar framework BMAD antes de planejar arquitetura v2.0.
+
+- Persona + Voz Clonada (produto "HER"): tutor com rosto e voz do criador
+  do curso. Modelo SaaS B2B para criadores. Componentes: PersonaEngine,
+  VoiceClone (ElevenLabs/XTTS v2), AvatarInterface, VisionInput.
+
+════════════════════════════════════════════════════════════
+9. PRIMEIRA TAREFA
+════════════════════════════════════════════════════════════
+
+Antes de mexer em qualquer código, precisamos verificar e preparar o ambiente
+no Linux Zorin 18. Me dê os comandos bash para verificar:
+
+1. Versão do Python instalado
+2. Se pip está disponível
+3. Se git está instalado
+4. Se há algum ambiente virtual ativo
+5. Se o Ollama está instalado (pode ter sido instalado antes)
+6. Espaço em disco disponível
+
+Entregue todos os comandos juntos, prontos para colar no terminal de uma vez.
+
+════════════════════════════════════════════════════════════

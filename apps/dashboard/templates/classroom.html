@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sala de Aula — Tutor AIOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+        <nav class="sidebar">
+        <a href="/" class="logo">Tutor AIOS</a>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/classroom" class="active">Sala de Aula</a></li>
+            <li><a href="/upload">Novo Curso</a></li>
+            <li><a href="/progress">Progresso</a></li>
+            <li><a href="/memory">Memória</a></li>
+            <li><a href="/agents">Agentes</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <h1>Sala de Aula</h1>
+        <div class="chat-container">
+            <div class="chat-messages" id="messages">
+                <div class="message assistant">
+                    <span class="bubble">Digite o topico que quer aprender e pressione Enter para comecar a aula.</span>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button onclick="simplify()" title="Pedir para simplificar">Simplificar</button>
+            </div>
+            <div class="chat-input">
+                <input type="text" id="input" placeholder="Digite o topico ou sua mensagem..." autocomplete="off">
+                <button onclick="sendMessage()">Enviar</button>
+            </div>
+        </div>
+    </main>
+    <script>
+        const ws = new WebSocket("ws://" + window.location.host + "/ws/chat");
+        const messages = document.getElementById("messages");
+        const input = document.getElementById("input");
+
+        ws.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            appendMessage("assistant", data.content);
+        };
+
+        ws.onerror = function() {
+            appendMessage("assistant", "Erro de conexao. Recarregue a pagina.");
+        };
+
+        function sendMessage() {
+            const text = input.value.trim();
+            appendMessage("user", text);
+            ws.send(JSON.stringify({message: text}));
+            input.value = "";
+        }
+
+        function simplify() {
+            appendMessage("user", "[Simplificar]");
+            ws.send(JSON.stringify({message: "", command: "simplify"}));
+        }
+
+        function appendMessage(role, content) {
+            const div = document.createElement("div");
+            div.className = "message " + role;
+            div.innerHTML = "<span class=bubble>" + content + "</span>";
+            messages.appendChild(div);
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        input.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") sendMessage();
+        });
+
+        // Se vier com ?topic= na URL, inicia automaticamente
+        const params = new URLSearchParams(window.location.search);
+        const autoTopic = params.get("topic");
+        if (autoTopic) {
+            ws.onopen = function() {
+                appendMessage("user", autoTopic);
+                ws.send(JSON.stringify({message: autoTopic}));
+            };
+        }
+    </script>
+</body>
+</html>

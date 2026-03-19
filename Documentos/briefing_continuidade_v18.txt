@@ -1,0 +1,190 @@
+TUTOR AIOS — BRIEFING COMPLETO PARA CONTINUIDADE
+Data: 14/03/2026
+Versão: 18
+
+Você é meu assistente de desenvolvimento sênior. Leia tudo com atenção antes de responder. Só confirme que entendeu e aguarde minha instrução.
+
+════════════════════════════════════════════════════════════
+1. O QUE É O PROJETO
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA que ingere PDFs, gera currículos
+automaticamente e conduz aulas conversacionais em linguagem natural.
+Dashboard web funcional com chat em tempo real.
+Visão de longo prazo: SaaS B2B para criadores de cursos com persona
+personalizada (voz, estilo, avatar do criador).
+
+════════════════════════════════════════════════════════════
+2. ESTADO ATUAL
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83) — falha restante é Ollama offline, ignorada.
+Backup mais recente: /home/ryz/AI/ProjTutor_Vrs4_14Mar26_ConvEngine.zip
+
+FASES:
+✅ Fase 0 — Estabilização do core
+✅ Fase 1 — Knowledge Layer (PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch)
+✅ Fase 2 — Tutor Core (CurriculumEngine, LessonGenerator, ProgressTracker, TutorSession, ConversationEngine)
+✅ Fase 3 — Dashboard Web (FastAPI + WebSockets + 5 telas + ConversationEngine integrado)
+⏳ Fase 4 — Voz e Visão
+⏳ Fase 5 — Desktop App
+
+════════════════════════════════════════════════════════════
+3. AMBIENTE
+════════════════════════════════════════════════════════════
+
+OS: Linux Zorin 18 (Ubuntu 24.04 LTS)
+Hardware: Lenovo IdeaPad Gaming 3 — i7-10750H, 8GB RAM, GTX 1650 4GB VRAM
+Python: 3.13.12
+Projeto: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+
+Comandos para iniciar:
+  cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+  uvicorn apps.dashboard.main:app --reload --port 8000
+
+LLMs em uso:
+- Groq (Llama 3.3 70B) → conversa, ingestão, currículo (gratuito)
+- Anthropic (Claude Haiku) → raciocínio profundo
+- Fallback automático implementado
+- Gemini e OpenAI: providers criados mas desativados
+- ALERTA: chave Gemini ficou exposta em output. Gerar nova antes de reativar.
+
+════════════════════════════════════════════════════════════
+4. ESTRUTURA DO PROJETO
+════════════════════════════════════════════════════════════
+
+ProjTutor_Vrs1_11Mar26_1016/
+├── aios/
+│   ├── orchestrator/     engine, task_queue, agent_registry, router, etc.
+│   ├── agents/           TutorAgent, ResearchAgent, BuilderAgent, SystemAgent...
+│   ├── tools/            FileSystemTool, VectorMemoryTool, SystemTool...
+│   ├── memory/           VectorMemory (ChromaDB), ExecutionMemory
+│   ├── llm/              LLMClient + providers (groq, anthropic, gemini, openai, ollama)
+│   ├── knowledge/        PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch
+│   └── tutor_core/       CurriculumEngine, LessonGenerator, ProgressTracker,
+│                         TutorSession, ConversationEngine
+├── apps/
+│   ├── dashboard/
+│   │   ├── main.py       FastAPI + WebSockets + rotas
+│   │   ├── templates/    index, classroom, progress, memory, agents, upload(pendente)
+│   │   └── static/css/   style.css (tema dark)
+│   └── cli/
+├── sources/pdfs/         PDFs ingeridos ficam aqui
+├── data/progress/        JSONs de progresso por curso
+├── memory/               MEMORY.md (a criar)
+├── validate_tutor.py
+├── .env                  protegido pelo .gitignore
+└── pyproject.toml
+
+════════════════════════════════════════════════════════════
+5. DASHBOARD — TELAS EXISTENTES
+════════════════════════════════════════════════════════════
+
+/ → Home com 4 cards de navegação
+/classroom → Chat em tempo real via WebSocket + ConversationEngine
+  - Primeiro turno: inicia tópico com start_topic()
+  - Turnos seguintes: respond() com memória dos últimos 10 turnos
+  - Verificação de entendimento a cada 3 turnos
+  - Botão Simplificar → engine.simplify()
+  - Usa nome do aluno "Rafael" nas respostas
+/progress → Exibe JSONs de progresso dos cursos
+/memory → Exibe MEMORY.md com busca por texto
+/agents → Lista TutorAgent, CurriculumAgent, ResearchAgent com status
+
+════════════════════════════════════════════════════════════
+6. PRÓXIMAS TAREFAS (em ordem de prioridade)
+════════════════════════════════════════════════════════════
+
+TAREFA 1 — Tela de Upload de PDF (estava sendo implementada)
+─────────────────────────────────────────────────────────────
+Criar tela /upload e endpoint POST /api/upload no main.py.
+O endpoint deve:
+1. Receber o arquivo PDF via multipart form
+2. Receber course_id (nome do curso) via form
+3. Salvar o PDF em sources/pdfs/
+4. Chamar TutorSession.ingest_pdf(pdf_path)
+5. Chamar TutorSession.generate_curriculum(course_id)
+6. Retornar JSON com: chunks armazenados e currículo gerado
+A tela HTML deve:
+- Ter campo para nome do curso
+- Ter input de arquivo (aceita só .pdf)
+- Mostrar barra de progresso durante ingestão
+- Mostrar o currículo gerado após conclusão
+- Ter botão "Iniciar Aula" que redireciona para /classroom
+
+Atenção: o PDFIngestor tem restrição de segurança — só aceita PDFs
+dentro de sources/pdfs/. O caminho absoluto deve ser passado corretamente.
+
+O main.py atual tem estas importações no topo:
+  from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+  from fastapi.staticfiles import StaticFiles
+  from fastapi.templating import Jinja2Templates
+  from fastapi.requests import Request
+  from fastapi.responses import HTMLResponse
+  import json, os, sys
+
+Para o upload, adicionar:
+  from fastapi import UploadFile, File, Form
+  from fastapi.responses import JSONResponse
+  import shutil
+
+TAREFA 2 — Criar MEMORY.md
+─────────────────────────────────────────────────────────────
+Criar arquivo memory/MEMORY.md com estrutura inicial.
+O ConversationEngine deve escrever nele ao final de cada sessão:
+- tópico estudado
+- pontos que o aluno teve dificuldade
+- analogias que funcionaram
+- progresso da sessão
+
+TAREFA 3 — Conectar currículo ao Classroom
+─────────────────────────────────────────────────────────────
+Após ingestão, o aluno deve poder escolher um módulo do currículo
+e iniciar aula diretamente sobre ele (em vez de digitar o tópico).
+O currículo fica salvo em data/progress/{course_id}.json.
+
+════════════════════════════════════════════════════════════
+7. REGRAS INEGOCIÁVEIS DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos ou snippets
+2. Passo a passo detalhado com todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória após cada etapa
+5. Explicar didaticamente o que cada parte faz
+6. Documentar decisões importantes
+7. Nunca mudar arquitetura sem justificativa e aprovação
+8. execute() sempre síncrono — NUNCA async
+9. DynamicLoader como único mecanismo de registro de agentes
+10. Documento de Visão Opus é a base definitiva do produto
+11. NUNCA usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+8. DECISÕES DE ARQUITETURA v2.0 (não implementar agora, não esquecer)
+════════════════════════════════════════════════════════════
+
+- Memória híbrida: MEMORY.md (sessão) + ChromaDB (semântica)
+- CAG: cache semântico Redis antes do pipeline RAG
+- Separação Inner Loop / Outer Loop no OrchestratorEngine
+- Prompt Injection Defense no ConversationEngine
+- Intent Checks determinísticos antes de ferramentas sensíveis
+- LLMClient com fallback — JÁ IMPLEMENTADO
+- Controle de profundidade de raciocínio por tipo de tarefa
+- PersonaEngine via arquivo .md por criador de curso
+- Oracle Cloud Free Tier como servidor backend
+- Supabase + Clerk + Stripe para versão SaaS paga
+- Investigar BMAD antes de replanejar arquitetura v2.0
+
+════════════════════════════════════════════════════════════
+9. PRIMEIRA TAREFA
+════════════════════════════════════════════════════════════
+
+Implemente a TAREFA 1 (tela de upload de PDF).
+
+Entregue:
+1. main.py completo com a rota /upload e endpoint POST /api/upload
+2. upload.html completo
+3. Comandos bash para aplicar os arquivos
+4. Comando para reiniciar o servidor e testar
+
+Aguarde confirmação antes de prosseguir para a próxima tarefa.

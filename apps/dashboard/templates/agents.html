@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentes — Tutor AIOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+        <nav class="sidebar">
+        <a href="/" class="logo">Tutor AIOS</a>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/classroom">Sala de Aula</a></li>
+            <li><a href="/upload">Novo Curso</a></li>
+            <li><a href="/progress">Progresso</a></li>
+            <li><a href="/memory">Memória</a></li>
+            <li><a href="/agents" class="active">Agentes</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <h1>Agentes</h1>
+        <div id="agents-list"></div>
+    </main>
+    <script>
+        fetch("/api/agents")
+            .then(r => r.json())
+            .then(data => {
+                const el = document.getElementById("agents-list");
+                data.agents.forEach(a => {
+                    const status_class = a.status === "running" ? "status-running" : "status-idle";
+                    el.innerHTML += "<div class=card><h3>" + a.name + "</h3><p>" + a.role + "</p><span class=" + status_class + ">" + a.status + "</span></div>";
+                });
+            });
+    </script>
+</body>
+</html>

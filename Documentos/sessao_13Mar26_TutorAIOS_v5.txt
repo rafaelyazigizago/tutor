@@ -1,0 +1,268 @@
+TUTOR AIOS — RELATÓRIO DE SESSÃO
+Data: 13/03/2026
+Sessão: Retomada do projeto, migração para Linux Zorin 18, análise de publicações para planejamento v2.0
+Versão: 5 (atualizado após análise de 9 publicações)
+
+════════════════════════════════════════════════════════════
+
+ESTADO DO PROJETO AO INÍCIO DA SESSÃO
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83)
+Única falha: pkg_resources obsoleto no script de validação — problema cosmético, não afeta o sistema.
+Backup salvo em: C:\AI\ProjTutor_Vrs1_11Mar26_1016.zip (628 MB) — disponível no Google Drive.
+
+Fases concluídas até o backup:
+- Fase 0 — Estabilização: completa (100%)
+- Fase 1 — Knowledge Layer: completa (PDF, Chunk, Embedding, Search)
+- Fase 2 — Tutor Core: completa (Curriculum, Lesson, Progress, Conversation)
+- Fase 3 — Dashboard Web: a construir
+- Fase 4 — Voz e Visão: a construir
+- Fase 5 — Desktop App: a construir
+
+════════════════════════════════════════════════════════════
+
+MUDANÇAS DE AMBIENTE DECIDIDAS NESTA SESSÃO
+════════════════════════════════════════════════════════════
+
+[DECISÃO] Migração definitiva de Windows 11 para Linux Zorin 18 como ambiente de desenvolvimento.
+Notebook: Lenovo IdeaPad Gaming 3 15IMH05
+CPU: Intel Core i7-10750H (6 núcleos, até 5 GHz)
+RAM: 8 GB (gargalo principal)
+GPU: NVIDIA GeForce GTX 1650 (4 GB VRAM)
+Armazenamento: NVMe 476 GB (458 GB livres)
+OS: Zorin OS 18 (base Ubuntu 24.04 LTS, kernel 6.17.0)
+Python: não verificado ainda — pendente
+
+[DECISÃO] Abandonar LLMs locais como motor principal por limitação de RAM (8 GB).
+Justificativa: qwen2.5:7b consome 5-6 GB de RAM, deixando menos de 2 GB para o sistema.
+Exceção: modelos locais pequenos (3B) podem ser mantidos para tarefas leves offline.
+
+[DECISÃO] Adotar estratégia multi-LLM com APIs online, cada uma para uma etapa específica:
+
+- Gemini Flash 2.0 → ingestão e processamento de conhecimento
+  Justificativa: janela de contexto de 1M tokens, ideal para documentos longos
+
+- Groq + Llama 3 → conversa em tempo real com o aluno
+  Justificativa: latência mínima, essencial para experiência de voz fluida
+
+- GPT-4o mini → geração de currículo e estruturação de conteúdo
+  Justificativa: bom equilíbrio custo/qualidade para tarefas em background
+
+- Claude (Anthropic) → raciocínio profundo: avaliar plano de ensino,
+  gerar exercícios complexos, analisar código do aluno
+
+[PENDENTE] Nenhuma chave de API criada ainda. Criar antes de retomar o código.
+
+[PENDENTE] Verificar ambiente do Zorin: Python, pip, venv, git, editor.
+
+[PENDENTE] Baixar backup do Google Drive e restaurar projeto no Zorin.
+
+════════════════════════════════════════════════════════════
+
+SEGURANÇA — DECISÃO CRÍTICA
+════════════════════════════════════════════════════════════
+
+[DECISÃO] Checklist de segurança obrigatório antes de qualquer código com APIs online:
+- Todas as chaves exclusivamente em variáveis de ambiente (.env)
+- Nunca no código-fonte
+- Nunca no frontend
+- Nunca no repositório Git (.gitignore já deve cobrir .env)
+- Verificar .gitignore antes do primeiro commit no Zorin
+
+Origem: caso real de startup explorada onde chaves de API foram expostas no
+frontend via vibe coding, resultando em 175 clientes cobrados $500 cada.
+
+[DECISÃO v2.0] Implementar Prompt Injection Defense no ConversationEngine.
+Problema: quando o aluno digitar texto que pode ser interpretado como instrução
+para o LLM, o sistema precisa detectar e bloquear antes de enviar ao modelo.
+Origem: Security Architecture do OpenClaws (Prompt Injection Defense).
+Atualmente não temos essa proteção.
+
+════════════════════════════════════════════════════════════
+
+ANÁLISE DE PUBLICAÇÕES — DECISÕES PARA v2.0
+════════════════════════════════════════════════════════════
+
+--- Publicação 1: @yagomartinsbr — "Como usar o Claude" ---
+
+[DECISÃO v2.0] Conceito de Skills aplicado à PersonaEngine.
+Cada persona de professor implementada como arquivo .md com estilo de fala,
+vocabulário e abordagem pedagógica do criador do curso.
+
+[REGISTRO] Framework BMAD — investigar antes de planejar o 2.0.
+
+[REGISTRO] Google Drive Connector — resolver ingestão de vídeos no SaaS v2.0.
+
+--- Publicação 2: @brun0gpt — "Pesquisa Profunda do Qwen 3.5 Plus" ---
+
+[DECISÃO v2.0] ResearchAgent com protocolo de pesquisa profunda:
+Mapeamento Inicial → Análise Profunda, fontes recentes, dados reais.
+
+[REGISTRO] Qwen 3.5 Plus online pode entrar na estratégia multi-LLM.
+
+--- Vídeo 1: "7 GitHub Repos for Claude Code" ---
+
+[REGISTRO] Pipeline Call→Transcription→LLM→Knowledge→Action confirma
+arquitetura do Tutor para Fase 4 (Voz).
+
+[REGISTRO] Continue.dev e Aider — avaliar como ferramentas pessoais de dev.
+
+--- Vídeo 2: Oracle Cloud Free Tier para hospedar IA ---
+
+[DECISÃO v2.0] Oracle Cloud Free Tier como servidor backend
+(4 OCPUs ARM, 24 GB RAM, 200 GB storage, sempre ativo, gratuito).
+
+[RESSALVA] ARM sem GPU — testar latência antes de comprometer arquitetura de voz.
+
+--- Publicação 3: @create_daniel2 — "NotebookLM: 5 prompts" ---
+
+[CONFIRMAÇÃO] simplify() e CurriculumEngine já implementam padrões equivalentes.
+
+[DECISÃO v2.0] LessonGenerator: modo Mind Map, modo Glossário,
+modo Structured by Chapter (aulas por capítulo do documento original).
+
+--- Publicação 4: @sidneyrodrigobr — "5 ferramentas para pentester" ---
+
+[DECISÃO v2.0] CurriculumEngine: detectar pré-requisitos ausentes e
+sugerir trilha antes de avançar (ordem estratégica de aprendizado automática).
+
+[REGISTRO] Tagline candidata: "Sem base, você vira dependente de tutorial.
+Com base, você cria suas próprias estratégias."
+
+--- Publicação 5: @coding_cosmos — "GitHub Repos that Build Engineering Thinking" ---
+
+[DECISÃO v2.0] LessonGenerator: exemplo duplo por conceito (conceitual + real-world).
+
+[REGISTRO] System Design repo é bom caso de teste para PDFIngestor com
+conteúdo técnico estruturado em capítulos.
+
+--- Publicação 6: Três imagens (Reddit/LinkedIn/Instagram) ---
+
+[DECISÃO] Segurança de APIs — ver seção SEGURANÇA acima.
+
+[REGISTRO] Cursos Anthropic relevantes: "Building with the Claude API",
+"Introduction to Model Context Protocol", "Introduction to agent skills".
+Disponíveis em anthropic.com/courses (gratuitos).
+
+--- Publicação 7: Reddit — Mind map da arquitetura OpenClaws ---
+
+Framework de agentes com arquitetura mapeada em 6 módulos. Análise dos
+módulos relevantes para o Tutor AIOS:
+
+[DECISÃO v2.0] Híbrido de memória: MEMORY.md + ChromaDB.
+Padrão do OpenClaws: arquivo Markdown para contexto de sessão rápido
+(sem busca vetorial) + ChromaDB para busca semântica profunda.
+Benefício: ConversationEngine mais leve para manter histórico da aula atual.
+Atualmente usamos só ChromaDB para tudo.
+
+[DECISÃO v2.0] Separação Inner Loop / Outer Loop no OrchestratorEngine.
+Inner Loop: execução da tarefa atual (Tool Calls & Steering).
+Outer Loop: planejamento da próxima tarefa (Four-Step Turn, Three-Tier Queue).
+Atualmente o OrchestratorEngine faz isso de forma achatada.
+Para v2.0 com múltiplos agentes, essa separação melhora o controle de fluxo.
+
+[REGISTRO] OpenClaws usa Tool Sandboxing + Docker Isolation para segurança
+das ferramentas dos agentes. Referência para quando implementarmos isolamento
+de execução no Tutor (ex: agente que roda código do aluno).
+
+════════════════════════════════════════════════════════════
+
+CONSOLIDADO DAS DECISÕES v2.0 (todas as publicações)
+════════════════════════════════════════════════════════════
+
+SEGURANÇA:
+- Checklist obrigatório antes de qualquer código com APIs online
+- Chaves apenas em .env, nunca no código ou frontend
+- .gitignore verificado antes do primeiro commit
+- Prompt Injection Defense no ConversationEngine
+
+MEMÓRIA:
+- Híbrido MEMORY.md (contexto rápido de sessão) + ChromaDB (busca semântica)
+
+ORQUESTRAÇÃO:
+- Separação Inner Loop / Outer Loop no OrchestratorEngine (v2.0)
+
+PERSONAS E ESTILO:
+- PersonaEngine via arquivo .md (Skills) por criador de curso
+- Voz clonada + avatar (ElevenLabs/XTTS v2) — produto SaaS B2B
+
+CURRICULUM ENGINE:
+- Detectar ausência de pré-requisitos e sugerir trilha antes de avançar
+- Ordem estratégica de aprendizado automática por área de conhecimento
+
+LESSON GENERATOR:
+- Modo Mind Map (mapa de ideias e relações)
+- Modo Glossário (termos fundamentais para memorização)
+- Modo Structured by Chapter (mini aulas por capítulo do documento original)
+- Exemplo duplo por conceito: conceitual + real-world
+
+RESEARCH AGENT:
+- Protocolo de pesquisa profunda: Mapeamento Inicial → Análise Profunda
+
+INFRAESTRUTURA:
+- Oracle Cloud Free Tier como servidor backend (ARM, 24 GB RAM, gratuito)
+- Investigar BMAD framework antes de planejar arquitetura v2.0
+
+DESENVOLVEDOR (recursos de estudo):
+- Cursos Anthropic: "Building with the Claude API", "Intro to MCP",
+  "Introduction to agent skills" — anthropic.com/courses
+
+════════════════════════════════════════════════════════════
+
+PRÓXIMAS ETAPAS (em ordem)
+════════════════════════════════════════════════════════════
+
+1. Continuar recebendo publicações para análise — sessão em andamento
+2. Verificar ambiente do Zorin (Python, git, editor)
+3. Criar contas e chaves de API: Gemini, Groq, OpenAI, Anthropic
+4. Baixar backup do Google Drive e restaurar projeto
+5. Adaptar código para Linux e para LLMs online
+6. Retomar desenvolvimento a partir da Fase 3 (Dashboard Web)
+
+════════════════════════════════════════════════════════════
+
+REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos
+2. Passo a passo detalhado — todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória em cada etapa
+5. Explicar didaticamente
+6. Documentar tudo
+7. Não mudar arquitetura sem justificativa
+8. execute() sempre síncrono — nunca async
+9. DynamicLoader como único registro de agentes
+10. Documento de Visão Opus adotado como base definitiva — não substituir
+11. Nunca usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+
+BLOCO DE CONTEXTO PARA O PRÓXIMO ASSISTENTE
+════════════════════════════════════════════════════════════
+
+O projeto Tutor AIOS é um professor pessoal de IA que ingere fontes de
+conhecimento (PDFs, futuramente vídeos), gera currículos e conduz aulas
+conversacionais em linguagem natural. Desenvolvido por Rafael em Python 3.12.
+
+O projeto estava rodando no Windows 11 (C:\AI\Tutor) com Ollama + qwen2.5:7b,
+ChromaDB e sentence-transformers. Backup completo salvo no Google Drive
+(ProjTutor_Vrs1_11Mar26_1016.zip). Pipeline ponta a ponta validado e funcional.
+
+A partir desta sessão, o ambiente migra para Linux Zorin 18 num Lenovo IdeaPad
+com i7-10750H, 8 GB RAM e GTX 1650. Por limitação de RAM, o projeto adota
+estratégia multi-LLM com APIs online: Gemini Flash 2.0 (ingestão), Groq/Llama 3
+(conversa), GPT-4o mini (currículo), Claude (raciocínio). Nenhuma chave de API
+criada ainda. Ambiente Zorin não verificado ainda.
+
+ALERTA DE SEGURANÇA: antes de qualquer código com APIs, verificar que todas
+as chaves estão apenas no .env e que o .gitignore está correto. Implementar
+Prompt Injection Defense no ConversationEngine (ainda não existe).
+
+Decisões v2.0 registradas: Skills como PersonaEngine, protocolo de pesquisa
+profunda no ResearchAgent, Oracle Cloud como servidor, modos Mind Map /
+Glossário / Structured by Chapter no LessonGenerator, exemplo duplo
+conceitual+real-world, detecção de pré-requisitos no CurriculumEngine,
+híbrido MEMORY.md+ChromaDB, separação Inner/Outer Loop no Orchestrator,
+investigar BMAD.

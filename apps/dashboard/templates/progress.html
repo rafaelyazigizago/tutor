@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progresso — Tutor AIOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .course-card { cursor: pointer; }
+        .course-card:hover { border-color: #7c6af7; }
+        .modules { display: none; margin-top: 12px; }
+        .modules.open { display: block; }
+        .module-item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background: #0f1117;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .module-item a {
+            color: #7c6af7;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        .module-item a:hover { text-decoration: underline; }
+        .course-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+        .course-meta { font-size: 12px; color: #9ca3af; }
+        .toggle { float: right; color: #7c6af7; font-size: 12px; }
+    </style>
+</head>
+<body>
+        <nav class="sidebar">
+        <a href="/" class="logo">Tutor AIOS</a>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/classroom">Sala de Aula</a></li>
+            <li><a href="/upload">Novo Curso</a></li>
+            <li><a href="/progress" class="active">Progresso</a></li>
+            <li><a href="/memory">Memória</a></li>
+            <li><a href="/agents">Agentes</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <h1>Progresso</h1>
+        <div id="courses"></div>
+        <p id="empty" style="color:#9ca3af;display:none;">Nenhum curso encontrado. Faça upload de um PDF para começar.</p>
+    </main>
+    <script>
+        fetch("/api/progress")
+            .then(r => r.json())
+            .then(data => {
+                const el = document.getElementById("courses");
+                if (!data.courses || data.courses.length === 0) {
+                    document.getElementById("empty").style.display = "block";
+                    return;
+                }
+                data.courses.forEach((c, i) => {
+                    const modules = c.curriculum && c.curriculum.modulos
+                        ? c.curriculum.modulos
+                        : (c.curriculum && c.curriculum.modules ? c.curriculum.modules : []);
+                    const name = c.curriculum && c.curriculum.curso
+                        ? c.curriculum.curso
+                        : c.course_id;
+                    const aulas = c.lessons_completed ? c.lessons_completed.length : 0;
+
+                    let modulesHtml = modules.map((m, j) =>
+                        '<div class="module-item">' +
+                        '<span>' + m + '</span>' +
+                        '<a href="/classroom?topic=' + encodeURIComponent(m) + '">Estudar</a>' +
+                        '</div>'
+                    ).join('');
+
+                    if (!modulesHtml) {
+                        modulesHtml = '<p style="font-size:13px;color:#9ca3af;">Nenhum módulo encontrado.</p>';
+                    }
+
+                    el.innerHTML +=
+                        '<div class="card course-card" onclick="toggle(' + i + ')">' +
+                        '<span class="toggle" id="arrow' + i + '">▼</span>' +
+                        '<div class="course-title">' + name + '</div>' +
+                        '<div class="course-meta">ID: ' + c.course_id + ' · Aulas concluídas: ' + aulas + ' · Módulos: ' + modules.length + '</div>' +
+                        '<div class="modules" id="modules' + i + '">' + modulesHtml + '</div>' +
+                        '</div>';
+                });
+            });
+
+        function toggle(i) {
+            const m = document.getElementById("modules" + i);
+            const a = document.getElementById("arrow" + i);
+            m.classList.toggle("open");
+            a.innerText = m.classList.contains("open") ? "▲" : "▼";
+        }
+    </script>
+</body>
+</html>

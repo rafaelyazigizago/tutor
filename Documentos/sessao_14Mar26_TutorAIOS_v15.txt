@@ -1,0 +1,262 @@
+TUTOR AIOS — RELATÓRIO DE SESSÃO
+Data: 13-14/03/2026
+Sessão: Retomada, migração Linux, análise de publicações, restauração do projeto, configuração de APIs
+Versão: 15 (atualizado em 14/03/2026 — projeto rodando no Linux com APIs online)
+
+════════════════════════════════════════════════════════════
+
+ESTADO ATUAL DO PROJETO
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 71% (59/83) — queda causada por dependências
+faltando no novo venv (numpy, rich). Não é regressão de código — é ambiente.
+Correção pendente: instalar numpy e rich, adicionar OLLAMA_URL no .env.
+
+Localização: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Venv: venv/ (Python 3.13.12)
+Ativar: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+
+Fases concluídas:
+- Fase 0 — Estabilização: completa
+- Fase 1 — Knowledge Layer: completa
+- Fase 2 — Tutor Core: completa
+- Fase 3 — Dashboard Web: a construir
+- Fase 4 — Voz e Visão: a construir
+- Fase 5 — Desktop App: a construir
+
+════════════════════════════════════════════════════════════
+
+AMBIENTE — ESTADO ATUAL
+════════════════════════════════════════════════════════════
+
+OS: Zorin OS 18 (Ubuntu 24.04 LTS base, kernel 6.17.0)
+Notebook: Lenovo IdeaPad Gaming 3 15IMH05
+CPU: Intel Core i7-10750H (6 núcleos, até 5 GHz)
+RAM: 8 GB
+GPU: NVIDIA GeForce GTX 1650 (4 GB VRAM)
+Armazenamento: NVMe 476 GB (405 GB livres)
+Editor: VSCodium (extensões Python e Python Debugger instaladas)
+Python: 3.13.12
+Shell: sh-5.3 (terminal integrado do VSCodium)
+
+Dependências instaladas no venv:
+- python-dotenv, requests, anthropic, fastapi, uvicorn ✅
+- pypdf, sentence-transformers, chromadb (--no-deps) ✅
+- numpy, rich — FALTANDO (causa das falhas no validate)
+
+════════════════════════════════════════════════════════════
+
+APIs CONFIGURADAS
+════════════════════════════════════════════════════════════
+
+[CONCLUÍDO] Chaves criadas e configuradas no .env:
+- GROQ_API_KEY — funcionando ✅
+- GEMINI_API_KEY — descartada (limite de requisições, plano gratuito restritivo)
+- OPENAI_API_KEY — sem créditos (429), descartada por ora
+- ANTHROPIC_API_KEY — funcionando ✅
+
+[DECISÃO] Estratégia de providers atualizada:
+- Groq (Llama 3.3 70B) → todas as tarefas de conversa, ingestão e currículo
+- Anthropic (Claude Haiku) → raciocínio profundo e avaliação pedagógica
+- Fallback: Groq → Anthropic
+
+Gemini e OpenAI permanecem nos arquivos de provider mas fora do TASK_PROVIDER_MAP.
+Podem ser reativados quando houver créditos ou limites melhores.
+
+[CONCLUÍDO] .gitignore configurado — .env protegido do Git.
+
+[PENDENTE] OLLAMA_URL ausente no .env — adicionar linha vazia para satisfazer validação:
+OLLAMA_URL=
+
+════════════════════════════════════════════════════════════
+
+LLM CLIENT — REFATORAÇÃO CONCLUÍDA
+════════════════════════════════════════════════════════════
+
+[CONCLUÍDO] Novos providers criados:
+- aios/llm/providers/groq_provider.py ✅
+- aios/llm/providers/gemini_provider.py ✅ (criado, desativado no mapa)
+- aios/llm/providers/openai_provider.py ✅ (criado, desativado no mapa)
+- aios/llm/providers/anthropic_provider.py ✅
+
+[CONCLUÍDO] aios/llm/llm_client.py refatorado:
+- Seleção de provider por tipo de tarefa (task="conversation", "ingestion", etc.)
+- Fallback automático: se provider primário falhar, tenta o próximo
+- Compatibilidade retroativa com Ollama (se LLM_PROVIDER=ollama no .env)
+
+TASK_PROVIDER_MAP atual:
+- conversation → groq
+- ingestion    → groq
+- curriculum   → groq
+- reasoning    → anthropic
+- default      → groq
+
+Teste de validação dos providers:
+- Groq: OK ✅
+- Anthropic: OK ✅
+- Gemini: 429 (descartado)
+- OpenAI: 429 (descartado)
+
+════════════════════════════════════════════════════════════
+
+PRÓXIMAS ETAPAS IMEDIATAS
+════════════════════════════════════════════════════════════
+
+1. Instalar dependências faltando e voltar a 98%:
+   pip install numpy rich --cache-dir /home/ryz/.pip_cache
+   Adicionar OLLAMA_URL= no .env
+   Rodar python validate_tutor.py
+
+2. Fase 3 — Dashboard Web:
+   - Iniciar FastAPI app em apps/dashboard/
+   - Telas: Progress Board, Memory, Agents, Classroom
+   - Referência visual: OpenClaw Mission Control (@roman.knox)
+   - Método: gerar componentes via v0.dev → integrar com FastAPI
+
+════════════════════════════════════════════════════════════
+
+SEGURANÇA — DECISÕES CRÍTICAS
+════════════════════════════════════════════════════════════
+
+[CONCLUÍDO] .gitignore protege .env, venv, __pycache__, data/chroma, logs, *.zip
+[ALERTA] Chave do Gemini ficou visível num output de terminal.
+Gerar nova chave em aistudio.google.com quando for reativar o Gemini.
+
+[DECISÃO v2.0] Prompt Injection Defense no ConversationEngine.
+[DECISÃO v2.0] Intent Checks determinísticos antes de ferramentas sensíveis.
+
+════════════════════════════════════════════════════════════
+
+ARQUITETURA — PRINCÍPIOS CONSOLIDADOS
+════════════════════════════════════════════════════════════
+
+[DECISÃO v2.0] Separação Raciocínio / Execução (Inner Loop / Outer Loop).
+[DECISÃO v2.0] Tutor propõe, aluno valida em conteúdo técnico.
+[DECISÃO v2.0] Memória híbrida: MEMORY.md (sessão) + ChromaDB (semântica).
+[DECISÃO v2.0] CAG: cache semântico Redis antes do pipeline RAG.
+[DECISÃO v2.0] Controle de profundidade de raciocínio por tipo de tarefa.
+[DECISÃO v2.0] LLMClient com fallback entre providers — IMPLEMENTADO.
+
+════════════════════════════════════════════════════════════
+
+DASHBOARD WEB — FASE 3
+════════════════════════════════════════════════════════════
+
+Referência visual: OpenClaw Mission Control (@roman.knox)
+Método: v0.dev para gerar componentes → integrar com FastAPI
+
+Telas essenciais:
+- Progress Board: kanban do aluno por curso
+- Memory: journal navegável + busca (visível ao aluno)
+- Agents: painel visual do AgentRegistry com status
+- Classroom: interface de conversa principal
+
+Telas posteriores:
+- Calendar: agendamento de sessões — Fase 3 ou 4
+- Office/Avatar: avatar animado do tutor — Fase 4
+
+════════════════════════════════════════════════════════════
+
+INFRAESTRUTURA v2.0 SaaS
+════════════════════════════════════════════════════════════
+
+- Supabase: PostgreSQL + auth + storage multi-usuário
+- Clerk: autenticação (OAuth, magic link, sessões)
+- Stripe: pagamentos e assinaturas
+- Redis (Upstash): cache semântico CAG + rate limiting + sessões
+- Oracle Cloud Free Tier: servidor backend (ARM, 24GB RAM, gratuito)
+- ChromaDB: vector DB (mantido — privacidade)
+- Mini PC Intel N100: alternativa ao Oracle Cloud (avaliar futuramente)
+
+════════════════════════════════════════════════════════════
+
+CONSOLIDADO DAS DECISÕES v2.0
+════════════════════════════════════════════════════════════
+
+SEGURANÇA:
+- Checklist .env antes de qualquer código com APIs
+- Prompt Injection Defense no ConversationEngine
+- Intent Checks determinísticos antes de ferramentas sensíveis
+
+ARQUITETURA:
+- Separação Raciocínio / Execução (Inner Loop / Outer Loop)
+- Tutor propõe, aluno valida em conteúdo técnico
+- Memória híbrida: MEMORY.md (sessão) + ChromaDB (semântica)
+- Controle de profundidade de raciocínio por tipo de tarefa
+- LLMClient com fallback entre providers — IMPLEMENTADO
+- CAG: cache semântico Redis antes do pipeline RAG
+
+DASHBOARD (Fase 3):
+- Progress Board, Memory, Agents, Classroom (essenciais)
+- Calendar, Office/Avatar (fases posteriores)
+- Construir via v0.dev + integrar com FastAPI
+
+INFRAESTRUTURA SaaS (v2.0):
+- Supabase, Clerk, Stripe, Redis, Oracle Cloud
+
+PERSONAS E ESTILO:
+- PersonaEngine via arquivo .md por criador de curso
+- Voz clonada + avatar (ElevenLabs/XTTS v2) — SaaS B2B
+
+CURRICULUM ENGINE:
+- Detectar pré-requisitos ausentes e sugerir trilha
+- Ordem estratégica de aprendizado automática
+
+LESSON GENERATOR:
+- Modo Mind Map, Glossário, Structured by Chapter
+- Exemplo duplo: conceitual + real-world
+
+CONVERSATION ENGINE:
+- Tutor propõe, aluno valida em conteúdo técnico
+
+RESEARCH AGENT:
+- Protocolo: Mapeamento Inicial → Análise Profunda
+
+FERRAMENTAS DE DESENVOLVIMENTO (uso pessoal):
+- v0.dev para componentes do Dashboard
+- VSCodium com extensões Python e Python Debugger
+
+DESENVOLVEDOR:
+- Cursos Anthropic — anthropic.com/courses (gratuitos)
+- Investigar BMAD antes de planejar arquitetura v2.0
+
+════════════════════════════════════════════════════════════
+
+REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos
+2. Passo a passo detalhado — todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória em cada etapa
+5. Explicar didaticamente
+6. Documentar tudo
+7. Não mudar arquitetura sem justificativa
+8. execute() sempre síncrono — nunca async
+9. DynamicLoader como único registro de agentes
+10. Documento de Visão Opus adotado como base definitiva
+11. Nunca usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+
+BLOCO DE CONTEXTO PARA O PRÓXIMO ASSISTENTE
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA em Python 3.13. Ingere PDFs, gera
+currículos, conduz aulas conversacionais. Rodando no Linux Zorin 18.
+Projeto em: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Ativar venv: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+
+Score atual: 71% — queda por numpy e rich faltando no venv.
+Correção imediata: pip install numpy rich --cache-dir /home/ryz/.pip_cache
+e adicionar OLLAMA_URL= no .env.
+
+LLMClient refatorado com multi-provider e fallback:
+- Groq (Llama 3.3 70B): funcionando — usado para conversation/ingestion/curriculum
+- Anthropic (Claude Haiku): funcionando — usado para reasoning
+- Gemini e OpenAI: providers criados mas desativados (sem créditos/limites)
+
+Próximo passo: voltar a 98% no validate → iniciar Fase 3 (Dashboard Web)
+com FastAPI + telas geradas via v0.dev. Referência: OpenClaw Mission Control.
+
+ALERTA: chave Gemini ficou exposta num output. Gerar nova antes de reativar.

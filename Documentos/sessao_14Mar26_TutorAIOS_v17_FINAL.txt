@@ -1,0 +1,126 @@
+TUTOR AIOS — RELATÓRIO DE SESSÃO
+Data: 14/03/2026
+Sessão: Fase 3 completa + ConversationEngine integrado ao Dashboard
+Versão: 17 — ENCERRAMENTO DA SESSÃO
+
+════════════════════════════════════════════════════════════
+
+ESTADO ATUAL DO PROJETO
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83) ✅
+Backup desta sessão: /home/ryz/AI/ProjTutor_Vrs4_14Mar26_ConvEngine.zip
+
+Localização: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Ativar: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+Rodar dashboard: uvicorn apps.dashboard.main:app --reload --port 8000
+
+Fases:
+✅ Fase 0 — Estabilização
+✅ Fase 1 — Knowledge Layer
+✅ Fase 2 — Tutor Core
+✅ Fase 3 — Dashboard Web (completa)
+⏳ Fase 4 — Voz e Visão
+⏳ Fase 5 — Desktop App
+
+════════════════════════════════════════════════════════════
+
+O QUE FOI FEITO NESTA SESSÃO
+════════════════════════════════════════════════════════════
+
+1. Dashboard Web (Fase 3) — COMPLETO:
+   - FastAPI + Uvicorn + WebSockets
+   - 5 telas: Home, Classroom, Progress, Memory, Agents
+   - CSS tema dark com sidebar e chat
+
+2. ConversationEngine integrado ao Classroom:
+   - Chat vai direto para ConversationEngine (não mais LLMClient)
+   - Memória de sessão (últimos 10 turnos)
+   - Verificação de entendimento a cada 3 turnos
+   - Botão "Simplificar" funcional
+   - Usa nome do aluno nas respostas
+   - Primeiro turno inicia tópico com start_topic()
+   - Turnos seguintes usam respond()
+
+3. Backup gerado: ProjTutor_Vrs4_14Mar26_ConvEngine.zip
+
+════════════════════════════════════════════════════════════
+
+ARQUIVOS CRIADOS OU MODIFICADOS NESTA SESSÃO
+════════════════════════════════════════════════════════════
+
+Criados:
+- apps/dashboard/__init__.py
+- apps/dashboard/main.py (FastAPI + WebSocket + ConversationEngine)
+- apps/dashboard/templates/index.html
+- apps/dashboard/templates/classroom.html (com botão Simplificar)
+- apps/dashboard/templates/progress.html
+- apps/dashboard/templates/memory.html
+- apps/dashboard/templates/agents.html
+- apps/dashboard/static/css/style.css
+
+Modificados:
+- apps/dashboard/main.py (integração ConversationEngine no WebSocket)
+- apps/dashboard/templates/classroom.html (suporte a comando simplify)
+
+════════════════════════════════════════════════════════════
+
+PRÓXIMAS ETAPAS
+════════════════════════════════════════════════════════════
+
+Melhorias pendentes antes da Fase 4:
+
+1. Tela de upload de PDF
+   Criar interface para ingestão de PDFs sem usar o terminal.
+   Após ingestão, mostrar currículo gerado e permitir iniciar aula.
+
+2. Criar MEMORY.md
+   O sistema de memória híbrida foi decidido mas o arquivo não existe.
+   Criar em memory/MEMORY.md e conectar ao ConversationEngine.
+
+3. Tela Calendar (agendamento de sessões)
+
+Fase 4 — Voz e Visão:
+- STT: Whisper para transcrição de voz
+- TTS: ElevenLabs ou XTTS v2 para resposta em áudio
+- Latência crítica: usar Groq pela velocidade (~200ms)
+- Avatar do tutor na tela Office
+
+════════════════════════════════════════════════════════════
+
+REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos
+2. Passo a passo detalhado — todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória em cada etapa
+5. Explicar didaticamente
+6. Documentar tudo
+7. Não mudar arquitetura sem justificativa
+8. execute() sempre síncrono — nunca async
+9. DynamicLoader como único registro de agentes
+10. Documento de Visão Opus adotado como base definitiva
+11. Nunca usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+
+BLOCO DE CONTEXTO PARA O PRÓXIMO ASSISTENTE
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA em Python 3.13. Dashboard funcional
+com chat em tempo real via ConversationEngine + Groq. Rodando no Linux
+Zorin 18.
+
+Projeto: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Ativar: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+Dashboard: uvicorn apps.dashboard.main:app --reload --port 8000
+Score: 98%
+
+LLMs: Groq (Llama 3.3 70B) + Anthropic (Claude Haiku). Fallback automático.
+
+Próximo passo: criar tela de upload de PDF para ingestão sem terminal,
+criar MEMORY.md para memória híbrida, depois iniciar Fase 4 (Voz).
+
+ALERTA: chave Gemini ficou exposta em output anterior.
+Gerar nova em aistudio.google.com antes de reativar o Gemini.

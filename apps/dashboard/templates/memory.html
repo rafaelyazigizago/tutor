@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Memória — Tutor AIOS</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .session-card {
+            background: #1a1d27;
+            border: 1px solid #2a2d3a;
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+        }
+        .session-date { font-size: 11px; color: #6b7280; margin-bottom: 6px; }
+        .session-topic { font-size: 15px; font-weight: 600; color: #e0e0e0; margin-bottom: 4px; }
+        .session-meta { font-size: 12px; color: #9ca3af; }
+        .empty-state { color: #9ca3af; font-size: 14px; padding: 24px 0; }
+        .raw-toggle { font-size: 12px; color: #7c6af7; cursor: pointer; margin-bottom: 16px; display: inline-block; }
+        .raw-box { display: none; background: #0f1117; border: 1px solid #2a2d3a; border-radius: 8px; padding: 16px; white-space: pre-wrap; font-size: 12px; color: #6b7280; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <nav class="sidebar">
+        <a href="/" class="logo">Tutor AIOS</a>
+        <ul>
+            <li><a href="/">Início</a></li>
+            <li><a href="/classroom">Sala de Aula</a></li>
+            <li><a href="/upload">Novo Curso</a></li>
+            <li><a href="/progress">Progresso</a></li>
+            <li><a href="/memory" class="active">Memória</a></li>
+            <li><a href="/agents">Agentes</a></li>
+        </ul>
+    </nav>
+    <main class="content">
+        <h1>Memória</h1>
+        <input type="text" id="search" placeholder="Buscar nas sessões..." oninput="filter()">
+        <div id="sessions"></div>
+        <span class="raw-toggle" onclick="toggleRaw()">Ver arquivo bruto</span>
+        <div class="raw-box" id="raw"></div>
+    </main>
+    <script>
+        let allSessions = [];
+
+        fetch("/api/memory")
+            .then(r => r.json())
+            .then(data => {
+                const content = data.content || "";
+                document.getElementById("raw").innerText = content || "Arquivo vazio.";
+                if (!content || content.trim() === "") { showEmpty(); return; }
+                allSessions = parseSessions(content);
+                renderSessions(allSessions);
+            });
+
+        function parseSessions(text) {
+            const blocks = text.split("### Sessao").filter(b => b.trim());
+            return blocks.map(block => {
+                const lines = block.trim().split("\n");
+                const date = lines[0] ? lines[0].trim() : "";
+                const topicLine = lines.find(l => l.startsWith("Topico:")) || "";
+                const turnosLine = lines.find(l => l.startsWith("Turnos:")) || "";
+                const alunoLine = lines.find(l => l.startsWith("Aluno:")) || "";
+                return {
+                    date: date,
+                    topic: topicLine.replace("Topico:", "").trim(),
+                    turns: turnosLine.replace("Turnos:", "").trim() || "?",
+                    student: alunoLine.replace("Aluno:", "").trim() || "Rafael"
+                };
+            }).filter(s => s.topic !== "");
+        }
+
+        function renderSessions(sessions) {
+            const el = document.getElementById("sessions");
+            if (!sessions.length) { showEmpty(); return; }
+            el.innerHTML = sessions.map(s =>
+                '<div class="session-card">' +
+                '<div class="session-date">' + s.date + '</div>' +
+                '<div class="session-topic">' + s.topic + '</div>' +
+                '<div class="session-meta">Aluno: ' + s.student + ' · Turnos: ' + s.turns + '</div>' +
+                '</div>'
+            ).join('');
+        }
+
+        function showEmpty() {
+            document.getElementById("sessions").innerHTML =
+                '<p class="empty-state">Nenhuma sessão registrada ainda. Inicie uma aula para começar a construir a memória do tutor.</p>';
+        }
+
+        function filter() {
+            const q = document.getElementById("search").value.toLowerCase();
+            if (!q) { renderSessions(allSessions); return; }
+            const filtered = allSessions.filter(s =>
+                s.topic.toLowerCase().includes(q) || s.date.toLowerCase().includes(q)
+            );
+            renderSessions(filtered);
+        }
+
+        function toggleRaw() {
+            const box = document.getElementById("raw");
+            box.style.display = box.style.display === "block" ? "none" : "block";
+        }
+    </script>
+</body>
+</html>

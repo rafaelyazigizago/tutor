@@ -1,0 +1,451 @@
+TUTOR AIOS — DOCUMENTO COMPLETO DO PROJETO
+Versão: 1.0 | Data: 14/03/2026
+Autor: Rafael Yazigi Zago
+
+════════════════════════════════════════════════════════════
+PARTE 1 — O QUE É O TUTOR AIOS
+════════════════════════════════════════════════════════════
+
+O Tutor AIOS é um professor pessoal de inteligência artificial que ingere
+fontes de conhecimento (PDFs, futuramente vídeos e repositórios), gera
+currículos automaticamente a partir desse conteúdo e conduz aulas
+conversacionais em linguagem natural com o aluno.
+
+O sistema foi projetado para ser local-first (roda na máquina do usuário),
+privado (dados do aluno não saem para terceiros) e extensível (novos módulos
+podem ser adicionados sem quebrar o que já existe).
+
+A visão de longo prazo é um produto SaaS B2B para criadores de cursos online:
+o criador faz upload do seu conteúdo, configura uma persona com sua própria
+voz e estilo, e seus alunos têm um tutor personalizado que ensina exatamente
+do jeito que o criador ensinaria.
+
+────────────────────────────────────────────────────────────
+PROPOSTA DE VALOR
+────────────────────────────────────────────────────────────
+
+Para o aluno:
+"Sem base, você vira dependente de tutorial.
+Com base, você cria suas próprias estratégias."
+
+O Tutor não entrega respostas prontas. Ele constrói entendimento progressivo,
+detecta lacunas, sugere pré-requisitos e verifica compreensão antes de avançar.
+
+Para o criador de curso (v2.0):
+Um tutor com sua voz, seu estilo e seu conhecimento — disponível 24h para
+cada aluno, sem você precisar estar presente.
+
+════════════════════════════════════════════════════════════
+PARTE 2 — ESTADO ATUAL (v1.0)
+════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────
+AMBIENTE
+────────────────────────────────────────────────────────────
+
+OS: Linux Zorin 18 (Ubuntu 24.04 LTS)
+Hardware: Lenovo IdeaPad Gaming 3 — i7-10750H, 8GB RAM, GTX 1650 4GB
+Python: 3.13.12
+Projeto: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Ativar: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+Score de validação: 98% (82/83)
+
+────────────────────────────────────────────────────────────
+STACK TECNOLÓGICA ATUAL
+────────────────────────────────────────────────────────────
+
+LLMs:
+- Groq + Llama 3.3 70B → conversa, ingestão, currículo (gratuito, rápido)
+- Anthropic Claude Haiku → raciocínio profundo e avaliação pedagógica
+- Fallback automático: se Groq falhar, usa Anthropic
+
+Armazenamento:
+- ChromaDB → vector store persistente para busca semântica
+- JSON → progresso do aluno por curso (data/progress/)
+- sentence-transformers → modelo de embeddings (all-MiniLM-L6-v2)
+
+Backend:
+- FastAPI + Uvicorn → servidor web e WebSockets
+- Python 3.13 + venv
+
+────────────────────────────────────────────────────────────
+ARQUITETURA DO SISTEMA
+────────────────────────────────────────────────────────────
+
+aios/
+├── orchestrator/     Motor de orquestração, fila de tarefas, roteamento
+├── agents/           TutorAgent, ResearchAgent, BuilderAgent, SystemAgent...
+├── tools/            FileSystemTool, VectorMemoryTool, SystemTool...
+├── memory/           VectorMemory (ChromaDB), ExecutionMemory
+├── llm/              LLMClient com multi-provider e fallback
+│   └── providers/    groq, anthropic, gemini*, openai*, ollama*
+├── knowledge/        PDFIngestor, ChunkEngine, EmbeddingEngine, KnowledgeSearch
+└── tutor_core/       CurriculumEngine, LessonGenerator, ProgressTracker,
+                      TutorSession, ConversationEngine
+
+apps/
+├── dashboard/        FastAPI + WebSockets + HTML/CSS
+│   ├── main.py       Servidor, rotas, WebSocket /ws/chat
+│   ├── templates/    index, classroom, progress, memory, agents
+│   └── static/css/   style.css (tema dark, sidebar, chat)
+└── cli/              Interface de linha de comando
+
+* criados mas desativados (sem créditos/limites)
+
+────────────────────────────────────────────────────────────
+FUNCIONALIDADES IMPLEMENTADAS
+────────────────────────────────────────────────────────────
+
+Knowledge Layer (Fase 1):
+- Ingestão de PDFs com segurança de path (PDFIngestor)
+- Divisão em chunks semânticos (ChunkEngine)
+- Geração de embeddings (EmbeddingEngine + EmbeddingSingleton)
+- Busca semântica por similaridade (KnowledgeSearch)
+- Armazenamento persistente no ChromaDB
+
+Tutor Core (Fase 2):
+- Geração automática de currículo a partir do PDF (CurriculumEngine)
+- Geração de aulas com RAG — busca contexto relevante (LessonGenerator)
+- Rastreamento de progresso por curso (ProgressTracker)
+- Pipeline completo ponta a ponta (TutorSession)
+- Conversa em linguagem natural (ConversationEngine):
+  - start_topic() — introdução curta + pergunta inicial
+  - respond() — resposta baseada no aluno
+  - simplify() — reexplica com analogia do dia a dia
+  - Verificação de entendimento a cada 3 turnos
+  - Histórico dos últimos 10 turnos
+
+Dashboard Web (Fase 3 — recém concluída):
+- Home com cards de navegação
+- Classroom: chat em tempo real via WebSocket + Groq
+- Progress: exibe progresso dos cursos
+- Memory: journal de memórias com busca
+- Agents: painel visual com status dos agentes
+
+────────────────────────────────────────────────────────────
+FASES DO ROADMAP
+────────────────────────────────────────────────────────────
+
+✅ Fase 0 — Estabilização do core (completa)
+✅ Fase 1 — Knowledge Layer: PDF, Chunk, Embedding, Search (completa)
+✅ Fase 2 — Tutor Core: Curriculum, Lesson, Progress, Conversation (completa)
+✅ Fase 3 — Dashboard Web: FastAPI + WebSockets + 4 telas (completa)
+⏳ Fase 4 — Voz e Visão: STT, TTS, visão de tela
+⏳ Fase 5 — Desktop App: Electron ou Tauri
+
+════════════════════════════════════════════════════════════
+PARTE 3 — PRÓXIMAS ETAPAS IMEDIATAS
+════════════════════════════════════════════════════════════
+
+Antes de iniciar a Fase 4, há melhorias pendentes no sistema atual:
+
+1. Conectar ConversationEngine ao chat do Dashboard
+   Atualmente o Classroom envia mensagens direto ao LLMClient.
+   Deve passar pelo ConversationEngine para ter memória de sessão,
+   verificação de entendimento e simplificação automática.
+
+2. Conectar PDFIngestor ao Dashboard
+   Criar tela de upload de PDF para o aluno poder adicionar conteúdo
+   sem precisar usar o terminal.
+
+3. Conectar CurriculumEngine ao Dashboard
+   Após ingestão, mostrar o currículo gerado e permitir iniciar aula
+   por módulo diretamente da interface.
+
+4. Criar arquivo MEMORY.md
+   O sistema de memória híbrida (MEMORY.md + ChromaDB) foi decidido
+   mas o arquivo ainda não existe. Criar e conectar ao ConversationEngine.
+
+════════════════════════════════════════════════════════════
+PARTE 4 — VISÃO v2.0
+════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────
+4.1 ARQUITETURA EVOLUÍDA
+────────────────────────────────────────────────────────────
+
+SEPARAÇÃO RACIOCÍNIO / EXECUÇÃO (Inner Loop / Outer Loop)
+
+Princípio: o agente que decide o que ensinar não deve ser o mesmo
+que conduz a aula. Se o raciocínio errar, o erro fica contido.
+
+Inner Loop: execução da tarefa atual (Tool Calls, geração de resposta)
+Outer Loop: planejamento da próxima tarefa (o que ensinar, qual módulo)
+
+Para o Tutor: CurriculumAgent decide → TutorAgent executa.
+
+MEMÓRIA HÍBRIDA
+
+Padrão atual: só ChromaDB (busca semântica para tudo)
+Padrão v2.0:
+- MEMORY.md → contexto rápido da sessão atual (sem busca vetorial)
+- ChromaDB → busca semântica profunda entre sessões
+Benefício: ConversationEngine mais leve para manter histórico da aula.
+
+CAG — CACHE AUGMENTED GENERATION
+
+Problema: alunos fazem perguntas semanticamente iguais em sessões
+diferentes, disparando o pipeline completo (latência + custo de API).
+
+Solução: cache semântico Redis antes do ChromaDB.
+Fluxo: Query → Redis Cache → (miss) → ChromaDB → LLM → Cache Store
+Resultado: respostas em ~50ms para perguntas já feitas antes.
+Redis também usado para: rate limiting, cache de sessão.
+
+CONTROLE DE PROFUNDIDADE DE RACIOCÍNIO
+
+Perguntas simples do aluno = raciocínio curto (Groq direto)
+Avaliação pedagógica = raciocínio longo (Claude com mais tokens)
+Padrão de transição: inserir mensagem antes de cortar raciocínio
+em vez de interromper abruptamente.
+
+LLMCLIENT COM FALLBACK — JÁ IMPLEMENTADO
+
+Groq falhou? → tenta Anthropic automaticamente.
+Estrutura pronta para adicionar Gemini e OpenAI quando tiver créditos.
+
+────────────────────────────────────────────────────────────
+4.2 SEGURANÇA
+────────────────────────────────────────────────────────────
+
+PROMPT INJECTION DEFENSE (pendente)
+Detectar e bloquear texto do aluno que possa ser interpretado como
+instrução ao LLM antes de enviar ao modelo.
+Contexto: em conteúdo técnico, alunos podem colar código ou prompts
+que confundem o sistema.
+
+INTENT CHECKS DETERMINÍSTICOS (pendente)
+Antes de qualquer ferramenta que acesse arquivos, execute código ou
+faça chamadas externas: verificar intenção com lógica determinística
+(não um segundo LLM). Só executa se intenção for validada.
+Origem: arquitetura de segurança do OpenClaws.
+
+Diferença entre os dois:
+- Prompt Injection: protege a entrada do usuário
+- Intent Checks: protege a execução de ações dos agentes
+
+────────────────────────────────────────────────────────────
+4.3 MELHORIAS PEDAGÓGICAS
+────────────────────────────────────────────────────────────
+
+CURRICULUM ENGINE — DETECÇÃO DE PRÉ-REQUISITOS
+O sistema deve detectar quando o aluno tenta aprender algo avançado
+sem ter a base necessária e sugerir trilha de pré-requisitos antes
+de avançar.
+Exemplo: aluno pede "me ensine Kubernetes" sem saber Docker.
+Sistema responde: "Para entender Kubernetes, precisamos primeiro
+cobrir Docker. Quer começar por aí?"
+
+LESSON GENERATOR — NOVOS MODOS DE SAÍDA
+Além da aula padrão, o LessonGenerator deve suportar:
+
+Modo Mind Map: mapa de ideias e relações entre conceitos.
+Útil para revisão rápida antes de uma aula.
+
+Modo Glossário: identifica todos os termos fundamentais do conteúdo
+e explica cada um como se o aluno fosse memorizar para uma prova.
+
+Modo Structured by Chapter: divide o PDF em capítulos e transforma
+cada um em uma mini aula independente com exemplos práticos e resumo.
+Diferença do modo atual: segue a estrutura do documento original,
+não só o currículo gerado pela IA.
+
+Modo Exemplo Duplo: para cada conceito, gera dois exemplos —
+um conceitual (o que é) e um real-world (onde aparece na prática).
+Padrão inspirado no Refactoring Guru.
+
+CONVERSATION ENGINE — VALIDAÇÃO DO ALUNO
+O tutor não deve apresentar resposta da IA como verdade absoluta
+em conteúdo técnico. Após explicação, verificar com o aluno antes
+de avançar: "Isso faz sentido? Tem algo que parece errado?"
+Origem: caso do OpenClaw 3D printing — IA errou na orientação
+de impressão e engenheiro mecânico precisou corrigir.
+
+RESEARCH AGENT — PROTOCOLO DE PESQUISA PROFUNDA
+Quando o aluno pedir para pesquisar um tema:
+1. Mapeamento Inicial: fontes recentes, especialistas, referências
+2. Análise Profunda: dados reais, tendências, perspectivas diferentes
+Inspirado no padrão do Qwen 3.5 Plus "Investigar a Fundo".
+
+────────────────────────────────────────────────────────────
+4.4 DASHBOARD v2.0
+────────────────────────────────────────────────────────────
+
+Telas planejadas além das 4 já existentes:
+
+TELA: UPLOAD / INGESTÃO (próxima a implementar)
+Interface para o aluno fazer upload de PDFs, ver status de processamento
+e iniciar aula a partir do conteúdo ingerido.
+
+TELA: CALENDAR (Fase 3 ou 4)
+Sessões de aula agendadas, revisões periódicas por espaçamento,
+lembretes de estudo. Integra com cron jobs do sistema.
+
+TELA: OFFICE / AVATAR (Fase 4)
+Avatar animado do tutor com presença visual em tempo real.
+Mostra status: pensando, falando, aguardando.
+Conecta com PersonaEngine e integração de voz.
+Referência: OpenClaw Mission Control (@roman.knox) tela "Office".
+
+────────────────────────────────────────────────────────────
+4.5 VOZ E PERSONA (Fase 4)
+────────────────────────────────────────────────────────────
+
+PIPELINE DE VOZ
+Fluxo: Microfone → STT (Whisper) → ConversationEngine → TTS → Áudio
+Latência crítica: usar Groq por sua velocidade (~200ms) para manter
+conversa fluida. A cada segundo de atraso, a experiência de voz quebra.
+Referência arquitetural: Call → Transcription → LLM → Knowledge → Action.
+
+PERSONA ENGINE
+Cada tutor tem uma persona definida por um arquivo .md:
+- Estilo de fala (formal, coloquial, técnico)
+- Vocabulário preferido
+- Abordagem pedagógica
+- Exemplos do domínio do criador
+
+Implementação leve: Skills (arquivos Markdown) em vez de PersonaEngine
+completo. O LLM lê o arquivo .md e adapta o comportamento.
+
+VOICE CLONE (produto SaaS)
+Para a versão B2B: o criador do curso grava amostras de voz,
+o sistema treina um clone com ElevenLabs ou XTTS v2.
+O aluno ouve o tutor com a voz real do criador do curso.
+
+────────────────────────────────────────────────────────────
+4.6 INGESTÃO DE MÚLTIPLAS FONTES (Fase 4)
+────────────────────────────────────────────────────────────
+
+Além de PDFs, o sistema deve ingerir:
+
+Vídeos do YouTube / Gravações de aulas:
+- Transcrição automática com Whisper
+- Extração de persona do criador (estilo, vocabulário)
+- Chunking por segmento temporal
+
+Repositórios GitHub:
+- Ingestão de código com contexto pedagógico
+- Ideal para cursos de programação
+
+Google Drive (v2.0 SaaS):
+- Connector nativo evita construir integração do zero
+- O criador do curso aponta a pasta, o sistema ingere automaticamente
+
+────────────────────────────────────────────────────────────
+4.7 INFRAESTRUTURA SAAS
+────────────────────────────────────────────────────────────
+
+Servidor backend:
+Oracle Cloud Free Tier — 4 OCPUs ARM, 24 GB RAM, 200 GB, sempre ativo.
+Notebook vira interface de desenvolvimento.
+Ressalva: ARM sem GPU, modelos rodam em CPU. Testar latência de voz.
+
+Alternativa futura:
+Mini PC Intel N100 (~R$ 800, 16GB RAM, ~10W).
+Custo único, latência zero (rede local), sem dependência de internet.
+Avaliar quando chegar a fase de infraestrutura.
+
+Stack para versão paga:
+- Supabase: PostgreSQL + auth + storage multi-usuário
+- Clerk: autenticação (OAuth, magic link, sessões por aluno)
+- Stripe: pagamentos e assinaturas recorrentes
+- Redis (Upstash): cache semântico CAG + rate limiting + sessões
+- Cloudflare: DNS + SSL + proteção DDoS
+
+Modelo de negócio:
+Criador paga assinatura mensal para ter seu tutor personalizado.
+Alunos do criador usam sem custo adicional (incluído no plano).
+
+────────────────────────────────────────────────────────────
+4.8 SEGURANÇA PARA SAAS (multi-tenant)
+────────────────────────────────────────────────────────────
+
+Isolamento de dados por usuário (multi-tenancy)
+Proteção de prompts e persona no servidor
+Pentest: prompt injection, path traversal, IDOR
+Rate limiting por usuário e por curso
+Autenticação robusta via Clerk
+
+════════════════════════════════════════════════════════════
+PARTE 5 — REFERÊNCIAS E RECURSOS
+════════════════════════════════════════════════════════════
+
+────────────────────────────────────────────────────────────
+INVESTIGAR ANTES DO PLANEJAMENTO v2.0
+────────────────────────────────────────────────────────────
+
+BMAD Framework (Breakthrough Method of Agile AI-driven Development)
+Apareceu em dois contextos independentes: comentário no post do Claude
+e no PDF AIOS.pdf ingerido no teste. Vale estudar antes de replanejar
+a arquitetura de agentes para v2.0.
+
+────────────────────────────────────────────────────────────
+REFERÊNCIAS VISUAIS E DE PRODUTO
+────────────────────────────────────────────────────────────
+
+OpenClaw Mission Control (@roman.knox)
+Blueprint visual do Dashboard. 6 telas construídas via prompt:
+Tasks Board, Content Pipeline, Memory, Calendar, Office, Team.
+Método: descrever cada tela → v0.dev gera componente → dev integra.
+
+OpenClaws Framework
+Arquitetura de referência para agentes:
+- Memory System: MEMORY.md + SQLite + Vector Embeddings
+- Dual-Loop Execution: Inner Loop (execução) + Outer Loop (planejamento)
+- Three-Layer Capability: Tools, Plugins, Skills
+- Security: Tool Sandboxing, Prompt Injection Defense, Intent Checks
+Filosofia: "memory + execution + extensibility + security, all composable."
+
+────────────────────────────────────────────────────────────
+FERRAMENTAS DE DESENVOLVIMENTO
+────────────────────────────────────────────────────────────
+
+v0.dev (Vercel): geração de componentes React/HTML via prompt.
+Uso: criar novas telas do Dashboard sem construir do zero.
+
+Continue.dev / Aider: assistentes de código no terminal.
+Uso: desenvolvimento assistido localmente, compatível com Ollama.
+
+Cursos Anthropic (gratuitos — anthropic.com/courses):
+- Building with the Claude API
+- Introduction to Model Context Protocol
+- Introduction to agent skills
+
+════════════════════════════════════════════════════════════
+PARTE 6 — REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos ou snippets
+2. Passo a passo detalhado com todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória após cada etapa
+5. Explicar didaticamente o que cada parte faz
+6. Documentar decisões importantes
+7. Nunca mudar arquitetura sem justificativa e aprovação
+8. execute() sempre síncrono — NUNCA async
+9. DynamicLoader como único mecanismo de registro de agentes
+10. Documento de Visão Opus é a base definitiva do produto
+11. NUNCA usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+PARTE 7 — BLOCO DE CONTEXTO PARA NOVOS ASSISTENTES
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA em Python 3.13. Ingere PDFs, gera
+currículos, conduz aulas conversacionais com chat em tempo real via
+WebSocket. Dashboard funcional com 4 telas. Rodando no Linux Zorin 18.
+
+Projeto: /home/ryz/AI/ProjTutor_Vrs1_11Mar26_1016/
+Ativar: cd ~/AI/ProjTutor_Vrs1_11Mar26_1016 && source venv/bin/activate
+Rodar dashboard: uvicorn apps.dashboard.main:app --reload --port 8000
+Score: 98% (validate_tutor.py)
+
+LLMs: Groq (Llama 3.3 70B) para conversa/ingestão/currículo +
+Anthropic (Claude Haiku) para raciocínio. Fallback automático implementado.
+Gemini e OpenAI criados mas desativados.
+
+ALERTA: chave Gemini ficou exposta em output. Gerar nova antes de reativar.
+
+Próximo passo: conectar ConversationEngine ao chat do Dashboard,
+criar tela de upload de PDF, criar MEMORY.md para memória híbrida.
+Depois: Fase 4 (Voz + Persona) e infraestrutura SaaS.

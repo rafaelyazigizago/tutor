@@ -1,0 +1,16 @@
+{
+  "course_id": "aios",
+  "created_at": "2026-03-15T11:09:52.884637",
+  "chunks": 173,
+  "curriculum": {
+    "curso": "Desenvolvimento de Aplica\u00e7\u00f5es com AIOS",
+    "modulos": [
+      "Introdu\u00e7\u00e3o ao AIOS: Conceitos e Fundamentos",
+      "Desenvolvimento de Agentes com AIOS: Frameworks e Adapta\u00e7\u00f5es",
+      "Optimiza\u00e7\u00e3o de Desempenho e Escalabilidade com AIOS",
+      "Trabalhando com o AIOS SDK: Interface e Comunica\u00e7\u00e3o",
+      "Desenvolvimento de Aplica\u00e7\u00f5es Avan\u00e7adas com AIOS: Casos de Uso e Exemplos",
+      "Implementa\u00e7\u00e3o de LLMs e Ferramentas com AIOS: T\u00e9cnicas e Melhores Pr\u00e1ticas"
+    ]
+  }
+}

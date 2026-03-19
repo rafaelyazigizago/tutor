@@ -1,0 +1,178 @@
+TUTOR AIOS — RELATÓRIO DE SESSÃO
+Data: 13/03/2026
+Sessão: Retomada do projeto, migração para Linux Zorin 18, análise de publicações para planejamento v2.0
+
+════════════════════════════════════════════════════════════
+
+ESTADO DO PROJETO AO INÍCIO DA SESSÃO
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83)
+Única falha: pkg_resources obsoleto no script de validação — problema cosmético, não afeta o sistema.
+Backup salvo em: C:\AI\ProjTutor_Vrs1_11Mar26_1016.zip (628 MB) — disponível no Google Drive.
+
+Fases concluídas até o backup:
+- Fase 0 — Estabilização: completa (100%)
+- Fase 1 — Knowledge Layer: completa (PDF, Chunk, Embedding, Search)
+- Fase 2 — Tutor Core: completa (Curriculum, Lesson, Progress, Conversation)
+- Fase 3 — Dashboard Web: a construir
+- Fase 4 — Voz e Visão: a construir
+- Fase 5 — Desktop App: a construir
+
+════════════════════════════════════════════════════════════
+
+MUDANÇAS DE AMBIENTE DECIDIDAS NESTA SESSÃO
+════════════════════════════════════════════════════════════
+
+[DECISÃO] Migração definitiva de Windows 11 para Linux Zorin 18 como ambiente de desenvolvimento.
+Notebook: Lenovo IdeaPad Gaming 3 15IMH05
+CPU: Intel Core i7-10750H (6 núcleos, até 5 GHz)
+RAM: 8 GB (gargalo principal)
+GPU: NVIDIA GeForce GTX 1650 (4 GB VRAM)
+Armazenamento: NVMe 476 GB (458 GB livres)
+OS: Zorin OS 18 (base Ubuntu 24.04 LTS, kernel 6.17.0)
+Python: não verificado ainda — pendente
+
+[DECISÃO] Abandonar LLMs locais como motor principal por limitação de RAM (8 GB).
+Justificativa: qwen2.5:7b consome 5-6 GB de RAM, deixando menos de 2 GB para o sistema.
+Exceção: modelos locais pequenos (3B) podem ser mantidos para tarefas leves offline.
+
+[DECISÃO] Adotar estratégia multi-LLM com APIs online, cada uma para uma etapa específica:
+
+- Gemini Flash 2.0 → ingestão e processamento de conhecimento
+  Justificativa: janela de contexto de 1M tokens, ideal para documentos longos
+  
+- Groq + Llama 3 → conversa em tempo real com o aluno
+  Justificativa: latência mínima, essencial para experiência de voz fluida
+  
+- GPT-4o mini → geração de currículo e estruturação de conteúdo
+  Justificativa: bom equilíbrio custo/qualidade para tarefas em background
+  
+- Claude (Anthropic) → raciocínio profundo: avaliar plano de ensino,
+  gerar exercícios complexos, analisar código do aluno
+
+[PENDENTE] Nenhuma chave de API criada ainda. Criar antes de retomar o código.
+
+[PENDENTE] Verificar ambiente do Zorin: Python, pip, venv, git, VS Code ou editor.
+
+[PENDENTE] Baixar backup do Google Drive e restaurar projeto no Zorin.
+
+════════════════════════════════════════════════════════════
+
+ANÁLISE DE PUBLICAÇÕES — DECISÕES PARA v2.0
+════════════════════════════════════════════════════════════
+
+--- Publicação 1: @yagomartinsbr — "Como usar o Claude" ---
+
+[DECISÃO v2.0] Conceito de Skills aplicado à PersonaEngine.
+Cada persona de professor (ex: "Tutor Leandro") implementada como um arquivo .md
+com estilo de fala, vocabulário e abordagem pedagógica do criador do curso.
+Mais leve que um PersonaEngine completo. Implementável já na v1 como teste.
+
+[REGISTRO] Framework BMAD (Breakthrough Method of Agile AI-driven Development)
+citado no comentário do post. Apareceu também no PDF AIOS.pdf ingerido no teste.
+Investigar antes de planejar o 2.0.
+
+[REGISTRO] Google Drive Connector (Claude Connectors) — na v2.0 SaaS,
+pode resolver ingestão de vídeos sem precisar construir um GoogleDriveIngestor.
+
+--- Publicação 2: @brun0gpt — "Pesquisa Profunda do Qwen 3.5 Plus" ---
+
+[DECISÃO v2.0] Padrão de prompt de pesquisa profunda como referência para o ResearchAgent.
+Estrutura: Mapeamento Inicial → Análise Profunda, com instruções explícitas
+para buscar fontes recentes, dados reais e tendências emergentes.
+Quando aluno pedir para pesquisar um tema, o agente segue esse protocolo.
+
+[REGISTRO] Qwen 3.5 Plus online (com acesso à internet) é diferente do qwen2.5:7b local.
+A versão online com busca pode entrar na estratégia multi-LLM como opção adicional.
+
+--- Vídeo 1: "7 GitHub Repos for Claude Code" ---
+
+[REGISTRO] Pipeline mostrado no vídeo (Call→Transcription→LLM→Knowledge→Action)
+confirma arquitetura do Tutor para Fase 4 (Voz). Estamos no caminho certo.
+
+[REGISTRO] Continue.dev e Aider — ferramentas para o fluxo de desenvolvimento,
+não para o sistema. Ambas compatíveis com Ollama. Avaliar como ferramentas pessoais.
+
+--- Vídeo 2: Oracle Cloud Free Tier para hospedar IA ---
+
+[DECISÃO v2.0] Oracle Cloud Free Tier como opção de servidor backend.
+Especificações gratuitas: 4 OCPUs ARM, 24 GB RAM, 200 GB storage, sempre ativo.
+Uso: rodar modelos pesados, ChromaDB, agentes — notebook vira interface de desenvolvimento.
+Mantém privacidade dos dados (não depende de APIs externas para dados do aluno).
+
+[RESSALVA] ARM não tem GPU. Modelos rodam em CPU — latência maior.
+Testar antes de comprometer arquitetura de voz em tempo real.
+
+--- Publicação 3: @create_daniel2 — "NotebookLM: 5 prompts que transformam arquivos em aulas" ---
+
+[CONFIRMAÇÃO] Simplify Difficult Content = simplify() do ConversationEngine.
+Já implementado. Estamos no caminho certo.
+
+[CONFIRMAÇÃO] Teach Me from Zero = CurriculumEngine atual.
+Mesma lógica pedagógica, diferente nomenclatura.
+
+[DECISÃO v2.0] Adicionar modo "Mind Map" ao LessonGenerator.
+Output alternativo que mapeia ideias principais, conceitos secundários e relações.
+Útil como modo de revisão rápida antes de uma aula.
+
+[DECISÃO v2.0] Adicionar modo "Glossário" ao LessonGenerator.
+Identifica todos os termos fundamentais do documento e explica cada um
+como se o aluno fosse memorizar para uma prova.
+
+[DECISÃO v2.0] Geração de aulas ancorada na estrutura de capítulos do documento original.
+Problema atual: LessonGenerator segue o currículo gerado pela IA, não os capítulos do PDF.
+Melhoria: cada seção/capítulo do documento vira uma mini aula independente
+com exemplos práticos e resumo ao final (Structured Classes by Chapter).
+
+════════════════════════════════════════════════════════════
+
+PRÓXIMAS ETAPAS (em ordem)
+════════════════════════════════════════════════════════════
+
+1. Continuar recebendo publicações para análise — sessão em andamento
+2. Verificar ambiente do Zorin (Python, git, editor)
+3. Criar contas e chaves de API: Gemini, Groq, OpenAI, Anthropic
+4. Baixar backup do Google Drive e restaurar projeto
+5. Adaptar código para Linux e para LLMs online
+6. Retomar desenvolvimento a partir da Fase 3 (Dashboard Web)
+
+════════════════════════════════════════════════════════════
+
+REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos
+2. Passo a passo detalhado — todos os comandos
+3. Comandos prontos para colar no terminal (agora bash Linux, não PowerShell)
+4. Validação obrigatória em cada etapa
+5. Explicar didaticamente
+6. Documentar tudo
+7. Não mudar arquitetura sem justificativa
+8. execute() sempre síncrono — nunca async
+9. DynamicLoader como único registro de agentes
+10. Documento de Visão Opus adotado como base definitiva — não substituir
+
+════════════════════════════════════════════════════════════
+
+BLOCO DE CONTEXTO PARA O PRÓXIMO ASSISTENTE
+════════════════════════════════════════════════════════════
+
+O projeto Tutor AIOS é um professor pessoal de IA local que ingere fontes de
+conhecimento (PDFs, futuramente vídeos), gera currículos e conduz aulas
+conversacionais em linguagem natural. Desenvolvido por Rafael em Python 3.12.
+
+O projeto estava rodando no Windows 11 (C:\AI\Tutor) com Ollama + qwen2.5:7b,
+ChromaDB e sentence-transformers. Backup completo salvo no Google Drive
+(ProjTutor_Vrs1_11Mar26_1016.zip). Pipeline ponta a ponta validado e funcional.
+
+A partir desta sessão, o ambiente migra para Linux Zorin 18 num Lenovo IdeaPad
+com i7-10750H, 8 GB RAM e GTX 1650. Por limitação de RAM, o projeto adota
+estratégia multi-LLM com APIs online: Gemini Flash 2.0 (ingestão), Groq/Llama 3
+(conversa), GPT-4o mini (currículo), Claude (raciocínio). Nenhuma chave de API
+criada ainda. Ambiente Zorin não verificado ainda.
+
+Estamos na fase de análise de publicações para planejar o v2.0 antes de retomar
+o código. Principais decisões v2.0 registradas: Skills como PersonaEngine,
+ResearchAgent com protocolo de pesquisa profunda, Oracle Cloud como servidor,
+modo Mind Map e Glossário no LessonGenerator, aulas por capítulo do documento.

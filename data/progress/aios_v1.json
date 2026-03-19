@@ -1,0 +1,23 @@
+{
+  "course_id": "aios_v1",
+  "started_at": "2026-03-11T12:45:50.986805",
+  "last_session": "2026-03-11T12:45:50.987808",
+  "completed_modules": [
+    "Modulo 1 - Fundamentos"
+  ],
+  "completed_lessons": [
+    {
+      "module": "Modulo 1 - Fundamentos",
+      "topic": "arquitetura de sistemas multiagente",
+      "completed_at": "2026-03-11T12:45:50.987808"
+    }
+  ],
+  "total_lessons_seen": 1,
+  "sessions": [
+    {
+      "timestamp": "2026-03-11T12:45:50.987808",
+      "module": "Modulo 1 - Fundamentos",
+      "topic": "arquitetura de sistemas multiagente"
+    }
+  ]
+}

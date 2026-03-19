@@ -1,0 +1,269 @@
+TUTOR AIOS — RELATÓRIO DE SESSÃO
+Data: 13/03/2026
+Sessão: Retomada do projeto, migração para Linux Zorin 18, análise de publicações para planejamento v2.0
+Versão: 10 (atualizado após análise de 14 publicações)
+
+════════════════════════════════════════════════════════════
+
+ESTADO DO PROJETO AO INÍCIO DA SESSÃO
+════════════════════════════════════════════════════════════
+
+Score validate_tutor.py: 98% (82/83)
+Única falha: pkg_resources obsoleto no script de validação — problema cosmético.
+Backup salvo em: C:\AI\ProjTutor_Vrs1_11Mar26_1016.zip (628 MB) — Google Drive.
+
+Fases concluídas até o backup:
+- Fase 0 — Estabilização: completa (100%)
+- Fase 1 — Knowledge Layer: completa (PDF, Chunk, Embedding, Search)
+- Fase 2 — Tutor Core: completa (Curriculum, Lesson, Progress, Conversation)
+- Fase 3 — Dashboard Web: a construir
+- Fase 4 — Voz e Visão: a construir
+- Fase 5 — Desktop App: a construir
+
+════════════════════════════════════════════════════════════
+
+MUDANÇAS DE AMBIENTE DECIDIDAS NESTA SESSÃO
+════════════════════════════════════════════════════════════
+
+[DECISÃO] Migração definitiva Windows 11 → Linux Zorin 18.
+Notebook: Lenovo IdeaPad Gaming 3 15IMH05
+CPU: Intel Core i7-10750H (6 núcleos, até 5 GHz)
+RAM: 8 GB (gargalo principal)
+GPU: NVIDIA GeForce GTX 1650 (4 GB VRAM)
+Armazenamento: NVMe 476 GB (458 GB livres)
+OS: Zorin OS 18 (Ubuntu 24.04 LTS base, kernel 6.17.0)
+Python: não verificado ainda — pendente
+
+[DECISÃO] Abandonar LLMs locais como motor principal (4GB VRAM insuficiente).
+Exceção: modelos 3B podem ser mantidos para tarefas leves offline.
+
+[DECISÃO] Estratégia multi-LLM com APIs online:
+- Gemini Flash 2.0 → ingestão e processamento de conhecimento (1M tokens)
+- Groq + Llama 3 → conversa em tempo real (latência mínima)
+- GPT-4o mini → geração de currículo (custo/qualidade em background)
+- Claude (Anthropic) → raciocínio profundo e avaliação pedagógica
+
+[DECISÃO v2.0] LLMClient com fallback entre providers.
+Risco: APIs gratuitas podem mudar cotas ou ser descontinuadas sem aviso.
+Design: se API primária falhar ou atingir cota, tentar próxima da lista.
+Não implementar agora — estruturar LLMClient refatorado para suportar isso.
+
+[PENDENTE] Criar chaves de API: Gemini, Groq, OpenAI, Anthropic.
+[PENDENTE] Verificar ambiente Zorin: Python, pip, venv, git, editor.
+[PENDENTE] Baixar backup do Google Drive e restaurar projeto.
+
+════════════════════════════════════════════════════════════
+
+SEGURANÇA — DECISÕES CRÍTICAS
+════════════════════════════════════════════════════════════
+
+[DECISÃO] Checklist antes de qualquer código com APIs online:
+- Chaves exclusivamente em .env
+- Nunca no código, nunca no frontend, nunca no Git
+- Verificar .gitignore antes do primeiro commit no Zorin
+
+[DECISÃO v2.0] Prompt Injection Defense no ConversationEngine.
+
+[DECISÃO v2.0] Intent Checks determinísticos antes de ferramentas sensíveis.
+
+════════════════════════════════════════════════════════════
+
+ARQUITETURA — PRINCÍPIOS CONSOLIDADOS
+════════════════════════════════════════════════════════════
+
+[DECISÃO v2.0] Separação Raciocínio / Execução no OrchestratorEngine.
+Agente que decide o que ensinar ≠ agente que conduz a aula.
+O agente propõe — o aluno valida. Especialmente importante em conteúdo
+técnico onde erros da IA têm consequências reais.
+Origem: caso OpenClaw 3D printing — IA errou na orientação de impressão
+e engenheiro mecânico precisou corrigir na thread.
+
+[DECISÃO v2.0] Controle de profundidade de raciocínio por tipo de tarefa.
+
+[DECISÃO v2.0] LLMClient com fallback entre providers.
+
+[REGISTRO] Padrão arquitetural confirmado pelo caso OpenClaw 3D printing:
+Framework de agentes + Skills específicas do domínio + ferramentas externas
+= agente que resolve problema real sem o usuário entender a infraestrutura.
+Estrutura idêntica ao Tutor AIOS em domínio diferente.
+
+Filosofia de design: "memory + execution + extensibility + security, all composable."
+
+════════════════════════════════════════════════════════════
+
+FERRAMENTAS DE DESENVOLVIMENTO (uso pessoal)
+════════════════════════════════════════════════════════════
+
+[REGISTRO] v0.dev (Vercel) — geração de componentes React/HTML via prompt.
+Uso: acelerar construção do frontend na Fase 3 (Dashboard Web).
+
+[REGISTRO] Google Stitch — menos adequado que v0.dev para integração direta.
+
+[REGISTRO] Continue.dev e Aider — assistentes de código no terminal/editor.
+
+════════════════════════════════════════════════════════════
+
+ANÁLISE DE PUBLICAÇÕES — DECISÕES PARA v2.0
+════════════════════════════════════════════════════════════
+
+--- Publicação 1: @yagomartinsbr — "Como usar o Claude" ---
+[DECISÃO v2.0] PersonaEngine via arquivo .md (Skills) por criador de curso.
+[REGISTRO] Investigar framework BMAD antes do 2.0.
+[REGISTRO] Google Drive Connector para ingestão de vídeos no SaaS.
+
+--- Publicação 2: @brun0gpt — "Pesquisa Profunda do Qwen 3.5 Plus" ---
+[DECISÃO v2.0] ResearchAgent: Mapeamento Inicial → Análise Profunda.
+
+--- Vídeo 1: "7 GitHub Repos for Claude Code" ---
+[REGISTRO] Pipeline Call→Transcription→LLM→Knowledge→Action confirma Fase 4.
+
+--- Vídeo 2: Oracle Cloud Free Tier ---
+[DECISÃO v2.0] Oracle Cloud como servidor backend (ARM, 24GB RAM, gratuito).
+[RESSALVA] ARM sem GPU — testar latência antes de comprometer voz em tempo real.
+
+--- Publicação 3: @create_daniel2 — "NotebookLM: 5 prompts" ---
+[DECISÃO v2.0] LessonGenerator: modos Mind Map, Glossário, Structured by Chapter.
+
+--- Publicação 4: @sidneyrodrigobr — "5 ferramentas para pentester" ---
+[DECISÃO v2.0] CurriculumEngine: detectar pré-requisitos e sugerir trilha.
+[REGISTRO] Tagline candidata: "Sem base, você vira dependente de tutorial."
+
+--- Publicação 5: @coding_cosmos — "GitHub Repos that Build Engineering Thinking" ---
+[DECISÃO v2.0] LessonGenerator: exemplo duplo (conceitual + real-world).
+
+--- Publicação 6: Reddit/LinkedIn/Instagram ---
+[DECISÃO] Segurança de APIs — ver seção SEGURANÇA.
+[REGISTRO] Cursos Anthropic — anthropic.com/courses (gratuitos).
+
+--- Publicação 7: Reddit — Mind map OpenClaws ---
+[DECISÃO v2.0] Memória híbrida: MEMORY.md + ChromaDB.
+[DECISÃO v2.0] Inner Loop / Outer Loop no OrchestratorEngine.
+
+--- Publicação 8: Reddit — Comentários thread OpenClaws ---
+[DECISÃO v2.0] Intent Checks determinísticos.
+[DECISÃO v2.0] Separação Raciocínio/Execução.
+
+--- Publicação 9: r/LocalLLaMA — Reasoning Budget llama.cpp ---
+[DECISÃO v2.0] Controle de profundidade de raciocínio por tipo de tarefa.
+
+--- Publicação 10: Reels — Google Stitch ---
+[REGISTRO] v0.dev para acelerar Fase 3 (Dashboard Web).
+
+--- Publicação 11: r/LocalLLaMA — OmniCoder-9B ---
+[DECISÃO v2.0] LLMClient com fallback entre providers.
+
+--- Publicação 12: r/LocalLLaMA — OpenClaw + impressão 3D ---
+[REGISTRO] Padrão arquitetural validado: Skills domínio-específicas + agente
+= solução real sem expor infraestrutura ao usuário. Mesmo padrão do Tutor.
+
+[DECISÃO v2.0] ConversationEngine não apresenta resposta da IA como verdade
+absoluta em conteúdo técnico. O tutor propõe, o aluno pode questionar.
+Mecanismo: após explicação técnica, perguntar "isso faz sentido para você?
+Tem algo que parece errado?" antes de avançar.
+Origem: engenheiro mecânico corrigiu orientação de impressão que a IA errou.
+
+════════════════════════════════════════════════════════════
+
+CONSOLIDADO DAS DECISÕES v2.0
+════════════════════════════════════════════════════════════
+
+SEGURANÇA:
+- Checklist .env antes de qualquer código com APIs
+- Prompt Injection Defense no ConversationEngine
+- Intent Checks determinísticos antes de ferramentas sensíveis
+
+ARQUITETURA:
+- Separação Raciocínio / Execução (Inner Loop / Outer Loop)
+- Agente propõe, aluno valida — especialmente em conteúdo técnico
+- Memória híbrida: MEMORY.md (sessão) + ChromaDB (semântica)
+- Controle de profundidade de raciocínio por tipo de tarefa
+- LLMClient com fallback entre providers
+
+PERSONAS E ESTILO:
+- PersonaEngine via arquivo .md por criador de curso
+- Voz clonada + avatar (ElevenLabs/XTTS v2) — SaaS B2B
+
+CURRICULUM ENGINE:
+- Detectar pré-requisitos ausentes e sugerir trilha
+- Ordem estratégica de aprendizado automática
+
+LESSON GENERATOR:
+- Modo Mind Map
+- Modo Glossário
+- Modo Structured by Chapter (mini aulas por capítulo do PDF)
+- Exemplo duplo: conceitual + real-world
+
+CONVERSATION ENGINE:
+- Não apresentar resposta da IA como verdade absoluta em conteúdo técnico
+- Após explicação técnica: verificar com o aluno antes de avançar
+
+RESEARCH AGENT:
+- Protocolo: Mapeamento Inicial → Análise Profunda
+
+INFRAESTRUTURA:
+- Oracle Cloud Free Tier (ARM, 24 GB RAM, gratuito)
+- Investigar BMAD antes de planejar arquitetura v2.0
+
+FERRAMENTAS DE DESENVOLVIMENTO (uso pessoal):
+- v0.dev para geração de componentes do Dashboard (Fase 3)
+- Continue.dev e Aider para assistência no terminal/editor
+
+DESENVOLVEDOR:
+- Cursos Anthropic: "Building with Claude API", "Intro to MCP",
+  "Introduction to agent skills" — anthropic.com/courses
+
+════════════════════════════════════════════════════════════
+
+PRÓXIMAS ETAPAS (em ordem)
+════════════════════════════════════════════════════════════
+
+1. Continuar recebendo publicações para análise
+2. Verificar ambiente do Zorin (Python, git, editor)
+3. Criar chaves de API: Gemini, Groq, OpenAI, Anthropic
+4. Baixar backup do Google Drive e restaurar projeto
+5. Adaptar código para Linux e LLMs online
+6. Retomar desenvolvimento — Fase 3 (Dashboard Web)
+
+════════════════════════════════════════════════════════════
+
+REGRAS PERMANENTES DO PROJETO
+════════════════════════════════════════════════════════════
+
+1. Arquivos COMPLETOS ao alterar — nunca trechos
+2. Passo a passo detalhado — todos os comandos
+3. Comandos prontos para colar no terminal bash Linux
+4. Validação obrigatória em cada etapa
+5. Explicar didaticamente
+6. Documentar tudo
+7. Não mudar arquitetura sem justificativa
+8. execute() sempre síncrono — nunca async
+9. DynamicLoader como único registro de agentes
+10. Documento de Visão Opus adotado como base definitiva
+11. Nunca usar: LangChain, LangGraph, CrewAI, AutoGen, Flowise
+
+════════════════════════════════════════════════════════════
+
+BLOCO DE CONTEXTO PARA O PRÓXIMO ASSISTENTE
+════════════════════════════════════════════════════════════
+
+Tutor AIOS: professor pessoal de IA em Python 3.12. Ingere PDFs, gera
+currículos, conduz aulas conversacionais. Backup no Google Drive
+(ProjTutor_Vrs1_11Mar26_1016.zip). Pipeline validado e funcional (98%).
+
+Ambiente migra de Windows 11 para Linux Zorin 18 (Lenovo i7-10750H, 8GB RAM,
+GTX 1650 4GB VRAM). Estratégia multi-LLM com APIs online: Gemini Flash 2.0
+(ingestão), Groq/Llama 3 (conversa), GPT-4o mini (currículo), Claude
+(raciocínio). Nenhuma chave criada ainda. Ambiente Zorin não verificado ainda.
+
+ALERTA DE SEGURANÇA: verificar .env e .gitignore antes do primeiro commit.
+Implementar Prompt Injection Defense e Intent Checks (ainda não existem).
+
+Para Fase 3 (Dashboard Web): usar v0.dev para gerar componentes React/HTML.
+
+Principais decisões v2.0: separação Raciocínio/Execução com validação do
+aluno em conteúdo técnico, controle de profundidade de raciocínio, memória
+híbrida MEMORY.md+ChromaDB, Intent Checks, LLMClient com fallback entre
+providers, Skills como PersonaEngine, protocolo de pesquisa profunda no
+ResearchAgent, Oracle Cloud como servidor, modos Mind Map/Glossário/
+Structured by Chapter no LessonGenerator, exemplo duplo conceitual+real-world,
+detecção de pré-requisitos no CurriculumEngine, investigar BMAD.
